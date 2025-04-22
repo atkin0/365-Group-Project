@@ -8,6 +8,12 @@
 
 ## API Specification:
 ## 1. Creating Review 
+
+The API calls are made in this sequence when making a review:
+1. `New Review`
+2. `Optional Review`
+3. `Publish Review`
+
 ### 1.1: /reviews/ (POST)
 **Description**: Creates a new review for a user
 
