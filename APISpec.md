@@ -2,18 +2,36 @@
 #### Pierce, Lucas
 #### CSC 365
 #### 20 April 2025
-# Gamer Society API Specification and Example Flows
-API Specification:
-Creating Review 
-1.1: /reviews/ (POST)
-Description: Creates a new review for a user.
-Request:
-“user_id”: “int”,
-“customer_name”: “string”,
-“required_rating”: “int”,
-“description_of_game”: “string”
-Response:
-"review_id": "int"
+
+
+# <p align="center"> Gamer Society API Specification and Example Flows</p>
+
+## API Specification:
+## 1. Creating Review 
+### 1.1: /reviews/ (POST)
+**Description**: Creates a new review for a user
+
+**Request**:
+```json
+[
+	{
+		"user_id": "int",
+		"user_name": "string",
+		"game_name": "string",
+		"required_rating": "int",
+		"description_of_game": "string"
+	}
+]
+```
+**Response**:
+```json
+[
+	{
+		"review_id": "int"
+	}
+]
+```
+
 1.2: /reviews/{review_id}/optional (PUT)
 Description: Creates an additional optional review for parts of the game that they want to review. For example if someone was reviewing “Red Dead Redemption II” and wanted a separate rating for just the characters or the story, they could add one in.
 Request:
