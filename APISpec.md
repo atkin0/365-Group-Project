@@ -1,8 +1,8 @@
-##Atkin Rong, Gary Yim, Rishan Baweja, Tyler Bao Tien
-##Pierce, Lucas
-##CSC 365
-##20 April 2025
-#Gamer Society API Specification and Example Flows
+#### Atkin Rong, Gary Yim, Rishan Baweja, Tyler Bao Tien
+#### Pierce, Lucas
+#### CSC 365
+#### 20 April 2025
+# Gamer Society API Specification and Example Flows
 API Specification:
 Creating Review 
 1.1: /reviews/ (POST)
