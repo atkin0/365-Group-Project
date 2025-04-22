@@ -14,7 +14,7 @@ The API calls are made in this sequence when making a review:
 2. `Optional Review`
 3. `Publish Review`
 
-### 1.1: /reviews/ (POST)
+### 1.1: `/reviews/` (POST)
 **Description**: Creates a new review for a user
 
 **Request**:
