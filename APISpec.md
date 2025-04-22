@@ -306,81 +306,41 @@ The API calls are made in this sequence when making a review:
 ]
 ```
 
-2.1: /Reviews/{review_id}/Edit
-Request:
-“review_id”: integer
-“description_title”: string
-“score”: integer
-Reponse:
-“success”: boolean
-2.2: /Reviews/{review_id}/Publish
-Request:
-“review_id”: integer
-Reponse:
-“success”: boolean
-Adding Games
-3.1: /Games
-Display popular games that have been reviewed recently
-Response:
-“game_id”: integer
-“game_name”: string
-“review_num”: int
-3.2 /Games/Search
-Search for games based on the name or other parameters.
-Parameter
-“game_name”: string (Optional)
-“genre”: string (Optional)
-“sort_by”: Choose from options such as alphabetically, amount of reviews, or genre
-Response:
-“game_id”: integer
-“game_name”: string
-3.3/Games/{game_id}
-Display reviews for a specific game
-Response:
-“game_name”: string
-“game_genre”: string
-“game_description”: string
-“review_num”: int
- View User Profile
-4.1: /Users/{user_id}/Friends
-Display a specific users list of friends
-Response:
-“user_id”: id
-“user_name”: string
-4.2: /Users/{user_id}/Settings
-Display users settings
-4.2: /Users/{user_id}/Settings/Edit
-4.2: /Users/{user_id}/Settings/Edit/Post
-4.3: /Users/{user_id}/History 
-Let you see specific users review history and their top rated games.
-Request:
-“user_id”: int
-Response:
-“review_id”: int
-View Feed
+##5. View Feed
+### 5.1: /feed/ (GET)  
+**Description**: Gets a list of recent friend reviews and view them on feed
 
-Example Flows:
-	Steve the Minecraft gamer has come to Gamer Society to review his favorite game Minecraft, because he needs to show everyone how much he loves it. To leave his review he:
-Starts by calling POST /Reviews to get a new Review with ID 101. 
-Then he leaves the basic, required review by calling POST /Reviews/101/ratings/required and passes in his rating of 10/10. 
-Then, he decides he wants to leave an additional, optional review for his favorite part of Minecraft: its creativity. So, he calls POST /Reviews/101/ratings/optional and passes in his rating of 10/10 for its creativity. 
-He then calls POST /Reviews/101/description to leave a description of his thoughts on the game. 
-After he has finished up writing his thoughts about it, he calls  POST /Reviews/101/publish to finish the review. 
-The review then gets posted to his profile, where he can share how much he loves Minecraft.
+**Response**:  
+```json  
+[
+    {
+        "title_of_game": "string",
+        "friend_name": "string",
+        "friend_rating": "int",
+        "friend_description_of_game": "string"
+    }
+]
+```
 
-	John wants to add a new friend
-Starts by passing GET /Users/user_id to check out the guy’s profile
-Then he passes a POST /Users/user_id/Friends to add the guy as a new friend
-But then say the guy doesn’t add him back
-so he passes a DELETE /Users/user_id/Friends
+##6. Admin Functions
+### 6.1: /admin/delete (POST)  
+**Description**: A call to delete a post that we deem is not fit for the site
 
-	
-Louis wants to find recommended games
-GET /Reviews/review_id and GET /Users/{user_id}/Friends
-get reviews friends did on games and filter out the lowly rated ones
-get reviews done by other people sorted by helpfulness
-GET /Users/{user_id}/History
-get a list of games Louis played before
-GET /Genres/{game_id}
-Join the datasets to get recommendations on games based on the genre Louis wants to play, what he’s played before, what his friends have played and liked, and what other people like. Louis can also read the reviews from his friends and other reviews rated highly useful to select the game he wants.
+**Request**:  
+```json  
+[
+    {
+        "review_id": "int"
+    }
+]
+```
+**Response**:  
+```json  
+[
+    {
+        "success": "boolean"
+    }
+]
+```
+
 
