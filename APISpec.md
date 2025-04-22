@@ -6,7 +6,6 @@
 
 # <p align="center"> Gamer Society API Specification</p>
 
-## API Specification:
 ## 1. Creating Review 
 
 The API calls are made in this sequence when making a review:
