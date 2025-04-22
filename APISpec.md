@@ -152,6 +152,62 @@ The API calls are made in this sequence when making a review:
 ]
 ```
 
+## 3. View List of Games 
+### 3.1: /games/ (GET)  
+**Description**: Displays popular games that have been reviewed recently
+
+**Response**:  
+```json  
+[
+    {
+        "game_id": "int",
+        "game_name": "string",
+        "review_num": "int"
+    }
+]
+```
+### 3.2: /games/search (GET)  
+**Description**: Searches for games based on the name or other parameters.
+
+**Parameter**:  
+```json  
+[
+    {
+        "game_name": "string (Optional)",
+        "genre": "string (Optional)",
+        "sort_by": "string"
+    }
+]
+```
+
+**Response**:  
+```json  
+[
+    {
+        "game_id": "int",
+        "game_name": "string"
+    }
+]
+```
+
+### 3.3: /games/{game_id} (GET)  
+**Description**: Display reviews for a specific game
+
+**Response**:  
+```json  
+[
+    {
+        "game_name": "string",
+        "game_genre": "string",
+        "game_description": "string",
+        "review_ids": "int",
+        "review_name": "string",
+        "review_rating": "int",
+        "review_description": "string"
+    }
+]
+```
+
 2.1: /Reviews/{review_id}/Edit
 Request:
 “review_id”: integer
