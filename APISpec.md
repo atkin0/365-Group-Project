@@ -4,7 +4,7 @@
 #### 20 April 2025
 
 
-# <p align="center"> Gamer Society API Specification and Example Flows</p>
+# <p align="center"> Gamer Society API Specification</p>
 
 ## API Specification:
 ## 1. Creating Review 
