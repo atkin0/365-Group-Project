@@ -59,8 +59,99 @@ The API calls are made in this sequence when making a review:
 ]
 ```
 
+### 1.3: /reviews/{review_id}/publish (POST)  
+**Description**: Publishes review to profile  
 
-Patching Review
+**Request**:  
+```json  
+[
+    {
+        "review_id": "int"
+    }
+]
+```
+
+**Response**:  
+```json  
+[
+    {
+        "success": "boolean"
+    }
+]
+```
+
+## 2. Patching a Review
+
+The API calls are made in this sequence when making a review:
+1. `Edit Review`
+2. `Edit Optional Review`
+3. `Publish Review`
+
+### 2.1: /reviews/{review_id}/edit (PUT)  
+**Description**: If a user changes their mind on a review, and wants to go back and edit it.
+
+**Request**:  
+```json
+[
+    {
+        "review_id": "int",
+        "change_required_rating": "int",
+        "change_description_of_game": "string"
+    }
+]
+```
+
+**Response**:  
+```json
+[
+    {
+        "success": "boolean"
+    }
+]
+```
+
+### 2.2: /reviews/{review_id}/optional (PUT)  
+**Description**: Edits the additional optional review.
+
+**Request**:  
+```json  
+[
+    {
+        "change_aspect_to_review": "string",
+        "change_optional_rating": "int"
+    }
+]
+```
+
+**Response**:  
+```json  
+[
+    {
+        "success": "boolean"
+    }
+]
+```
+
+### 2.3: /reviews/{review_id}/publish (PATCH)  
+**Description**: Edited review will be published
+
+**Request**:  
+```json  
+[
+    {
+        "review_id": "int"
+    }
+]
+```
+**Response**:  
+```json  
+[
+    {
+        "success": "boolean"
+    }
+]
+```
+
 2.1: /Reviews/{review_id}/Edit
 Request:
 “review_id”: integer
