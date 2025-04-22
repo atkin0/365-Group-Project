@@ -208,6 +208,104 @@ The API calls are made in this sequence when making a review:
 ]
 ```
 
+## 4. View User Profile
+### 4.1: /users/{user_id}/friends (GET)  
+**Description**: Display a specific user's list of friends
+
+**Response**:  
+```json  
+[
+    {
+        "user_id": "int",
+        "user_name": "string"
+    }
+]
+```
+
+### 4.2: /users/{user_id}/settings (GET)  
+**Description**: Display all settings for a specific user. Can only access your own settings
+
+**Response**:  
+```json  
+[
+    {
+        "setting_id": "int",
+        "setting_name": "string",
+        "setting_value": "int"
+    }
+]
+```
+
+### 4.3: /users/{user_id}/settings/edit (PATCH)  
+**Description**: Update a user's setting
+
+**Request**:  
+```json  
+[
+    {
+        "setting_id": "int",
+        "setting_value": "int"
+    }
+]
+```
+
+**Response**:  
+```json  
+[
+    {
+        "success": "boolean"
+    }
+]
+```
+
+### 4.4: /users/{user_id}/history (GET)  
+**Description**: Let you see a specific user's review history and their top-rated games.
+
+**Request**:  
+```json  
+[
+    {
+        "user_id": "int"
+    }
+]
+```
+
+**Response**:  
+```json  
+[
+    {
+        "review_id": "int",
+        "game_reviewing": "string",
+        "review_rating": "int",
+        "review_description": "string"
+    }
+]
+```
+
+### 4.5: /users/{user_id}/favorite (GET)  
+**Description**: Displays a user's 5 favorite games
+
+**Request**:  
+```json  
+[
+    {
+        "user_id": "int"
+    }
+]
+```
+
+**Response**:  
+```json  
+[
+    {
+        "review_id": "int",  
+        "game_reviewing": "string",
+        "review_rating": "int",
+        "review_description": "string"
+    }
+]
+```
+
 2.1: /Reviews/{review_id}/Edit
 Request:
 “review_id”: integer
