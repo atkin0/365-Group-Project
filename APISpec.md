@@ -59,7 +59,7 @@ The API calls are made in this sequence when making a review:
 ]
 ```
 
-### 1.3: /reviews/{review_id}/publish (POST)  
+### 1.3: `/reviews/{review_id}/publish` (POST)  
 **Description**: Publishes review to profile  
 
 **Request**:  
@@ -87,7 +87,7 @@ The API calls are made in this sequence when making a review:
 2. `Edit Optional Review`
 3. `Publish Review`
 
-### 2.1: /reviews/{review_id}/edit (PUT)  
+### 2.1: `/reviews/{review_id}/edit` (PUT)  
 **Description**: If a user changes their mind on a review, and wants to go back and edit it.
 
 **Request**:  
@@ -110,7 +110,7 @@ The API calls are made in this sequence when making a review:
 ]
 ```
 
-### 2.2: /reviews/{review_id}/optional (PUT)  
+### 2.2: `/reviews/{review_id}/optional` (PUT)  
 **Description**: Edits the additional optional review.
 
 **Request**:  
@@ -132,7 +132,7 @@ The API calls are made in this sequence when making a review:
 ]
 ```
 
-### 2.3: /reviews/{review_id}/publish (PATCH)  
+### 2.3: `/reviews/{review_id}/publish` (PATCH)  
 **Description**: Edited review will be published
 
 **Request**:  
@@ -153,7 +153,7 @@ The API calls are made in this sequence when making a review:
 ```
 
 ## 3. View List of Games 
-### 3.1: /games/ (GET)  
+### 3.1: `/games/` (GET)  
 **Description**: Displays popular games that have been reviewed recently
 
 **Response**:  
@@ -166,7 +166,7 @@ The API calls are made in this sequence when making a review:
     }
 ]
 ```
-### 3.2: /games/search (GET)  
+### 3.2: `/games/search` (GET)  
 **Description**: Searches for games based on the name or other parameters.
 
 **Parameter**:  
@@ -190,7 +190,7 @@ The API calls are made in this sequence when making a review:
 ]
 ```
 
-### 3.3: /games/{game_id} (GET)  
+### 3.3: `/games/{game_id}` (GET)  
 **Description**: Display reviews for a specific game
 
 **Response**:  
@@ -209,7 +209,7 @@ The API calls are made in this sequence when making a review:
 ```
 
 ## 4. View User Profile
-### 4.1: /users/{user_id}/friends (GET)  
+### 4.1: `/users/{user_id}/friends` (GET)  
 **Description**: Display a specific user's list of friends
 
 **Response**:  
@@ -222,7 +222,7 @@ The API calls are made in this sequence when making a review:
 ]
 ```
 
-### 4.2: /users/{user_id}/settings (GET)  
+### 4.2: `/users/{user_id}/settings` (GET)  
 **Description**: Display all settings for a specific user. Can only access your own settings
 
 **Response**:  
@@ -236,7 +236,7 @@ The API calls are made in this sequence when making a review:
 ]
 ```
 
-### 4.3: /users/{user_id}/settings/edit (PATCH)  
+### 4.3: `/users/{user_id}/settings/edit` (PATCH)  
 **Description**: Update a user's setting
 
 **Request**:  
@@ -258,7 +258,7 @@ The API calls are made in this sequence when making a review:
 ]
 ```
 
-### 4.4: /users/{user_id}/history (GET)  
+### 4.4: `/users/{user_id}/history` (GET)  
 **Description**: Let you see a specific user's review history and their top-rated games.
 
 **Request**:  
@@ -282,7 +282,7 @@ The API calls are made in this sequence when making a review:
 ]
 ```
 
-### 4.5: /users/{user_id}/favorite (GET)  
+### 4.5: `/users/{user_id}/favorite` (GET)  
 **Description**: Displays a user's 5 favorite games
 
 **Request**:  
@@ -307,7 +307,7 @@ The API calls are made in this sequence when making a review:
 ```
 
 ## 5. View Feed
-### 5.1: /feed/ (GET)  
+### 5.1: `/feed/` (GET)  
 **Description**: Gets a list of recent friend reviews and view them on feed
 
 **Response**:  
@@ -323,7 +323,7 @@ The API calls are made in this sequence when making a review:
 ```
 
 ## 6. Admin Functions
-### 6.1: /admin/delete (POST)  
+### 6.1: `/admin/delete` (POST)  
 **Description**: A call to delete a post that we deem is not fit for the site
 
 **Request**:  
@@ -344,7 +344,7 @@ The API calls are made in this sequence when making a review:
 ```
 
 ## 7. Who's Online
-### 7.1: /Online/  
+### 7.1: `/Online/` 
 **Description**: Which of the user's friends are online and what game they are currently playing
 
 **Request**:  
@@ -364,6 +364,48 @@ The API calls are made in this sequence when making a review:
     {
         "user_id": "int",
         "game_id": "int"
+    }
+]
+```
+
+## 8. Comment On Review
+### 8.1: `/comments/` (POST)  
+**Description**: Creates a new comment for a user to post on someone else’s review.
+
+**Request**:  
+```json  
+[
+    {
+        "review_id": "int",
+        "comment_of_review": "string"
+    }
+]
+```
+**Response**:  
+```json  
+[
+    {
+        "comment_id": "int"
+    }
+]
+```
+### 8.2: `/comments/{comment_id}/publish` (POST)  
+**Description**: Publishes comment to someone else’s review
+
+**Request**:  
+```json  
+[
+    {
+        "review_id": "int"
+    }
+]
+```
+
+**Response**:  
+```json  
+[
+    {
+        "success": "boolean"
     }
 ]
 ```
