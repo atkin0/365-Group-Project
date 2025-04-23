@@ -306,7 +306,7 @@ The API calls are made in this sequence when making a review:
 ]
 ```
 
-##5. View Feed
+## 5. View Feed
 ### 5.1: /feed/ (GET)  
 **Description**: Gets a list of recent friend reviews and view them on feed
 
@@ -322,7 +322,7 @@ The API calls are made in this sequence when making a review:
 ]
 ```
 
-##6. Admin Functions
+## 6. Admin Functions
 ### 6.1: /admin/delete (POST)  
 **Description**: A call to delete a post that we deem is not fit for the site
 
