@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: central-coast-cauldrons
+    name: gamer-society
     runtime: python
     plan: free
     autoDeploy: true
