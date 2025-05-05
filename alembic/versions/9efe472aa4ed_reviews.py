@@ -25,8 +25,7 @@ def upgrade() -> None:
         sa.Column("id", sa.Integer, primary_key=True),
         sa.Column("score", sa.Integer, nullable=False),
         sa.Column("text", sa.Text, nullable=False),
-        sa.Column("published", sa.Boolean, nullable=False),
-        sa.Column("optional_review_id", sa.Integer, nullable=True),
+        sa.Column("published", sa.Boolean, default=False, nullable=False),
         sa.Column("user_id", sa.Integer, nullable=False),
         sa.Column("game_id", sa.Integer, nullable=False),
 
@@ -57,6 +56,13 @@ def upgrade() -> None:
         "Genres",
         sa.Column("id", sa.Integer, primary_key=True),
         sa.Column("name", sa.String, nullable=False),
+    )
+    op.create_table(
+        "Optional_reviews",
+        sa.Column("id", sa.Integer, primary_key=True),
+        sa.Column("review_name", sa.String, nullable=False),
+        sa.Column("optional_rating", sa.Integer, nullable=False),
+        sa.Column("review_id", sa.Integer, nullable=False)
     )
 
     pass
