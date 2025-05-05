@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from src.api import admin
+from src.api import admin, inventory
 from starlette.middleware.cors import CORSMiddleware
 
 description = """
@@ -31,7 +31,7 @@ app.add_middleware(
 )
 
 
-
+app.include_router(inventory.router)
 
 @app.get("/")
 async def root():
