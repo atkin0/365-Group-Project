@@ -19,7 +19,46 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    """Upgrade schema."""
+
+    op.create_table(
+        "Reviews",
+        sa.Column("id", sa.Integer, primary_key=True),
+        sa.Column("score", sa.Integer, nullable=False),
+        sa.Column("text", sa.Text, nullable=False),
+        sa.Column("published", sa.Boolean, nullable=False),
+        sa.Column("optional_review_id", sa.Integer, nullable=True),
+        sa.Column("user_id", sa.Integer, nullable=False),
+        sa.Column("game_id", sa.Integer, nullable=False),
+
+    )
+
+    op.create_table(
+        "Users",
+        sa.Column("id", sa.Integer, primary_key=True),
+        sa.Column("username", sa.String, nullable=False),
+        sa.Column("private_account", sa.Boolean, nullable=False),
+    )
+
+    op.create_table(
+        "Friends",
+        sa.Column("user_adding_id", sa.Integer, primary_key=True),
+        sa.Column("user_added_id", sa.Integer, primary_key=True),
+    )
+
+
+    op.create_table(
+        "Games",
+        sa.Column("id", sa.Integer, primary_key=True),
+        sa.Column("name", sa.String, nullable=False),
+        sa.Column("genre_id", sa.Integer, nullable=False),
+    )
+
+    op.create_table(
+        "Genres",
+        sa.Column("id", sa.Integer, primary_key=True),
+        sa.Column("name", sa.String, nullable=False),
+    )
+
     pass
 
 
