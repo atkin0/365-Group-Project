@@ -3,7 +3,7 @@ from src.api import admin, inventory
 from starlette.middleware.cors import CORSMiddleware
 
 description = """
-Central Coast Cauldrons is the premier ecommerce site for all your alchemical desires.
+Gamer Society is a society for gamers
 """
 tags_metadata = [
 ]
