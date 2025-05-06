@@ -30,7 +30,7 @@ def send_review(review: Reviews):
         result = connection.execute(
             sqlalchemy.text(
                 """
-                INSERT INTO Reviews (user_id, score, text, game_id)
+                INSERT INTO reviews (user_id, score, text, game_id)
                 VALUES (:user_id, :score, :text, :game_id)
                 RETURNING id
                 """
@@ -45,7 +45,7 @@ def optional_review(review_id: int, optional: OptionalReviews):
         result = connection.execute(
             sqlalchemy.text(
                 """
-                INSERT INTO Optional_reviews (review_name, optional_rating, review_id)
+                INSERT INTO optional_reviews (review_name, optional_rating, review_id)
                 VALUES (:review_name, :optional_rating, :review_id)
                 RETURNING id
                 """
@@ -60,9 +60,9 @@ def post_review(review_id: int):
         connection.execute(
             sqlalchemy.text(
                 """
-                UPDATE Optional_reviews
-                SET publish = TRUE
-                WHERE review_id = :review_id
+                UPDATE reviews
+                SET published = True
+                WHERE id = :review_id
                 """
             ),
             {"review_id": review_id}
