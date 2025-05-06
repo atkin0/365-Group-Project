@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from src.api import review
 from starlette.middleware.cors import CORSMiddleware
 
 description = """
@@ -30,8 +31,8 @@ app.add_middleware(
 )
 
 
-# app.include_router(inventory.router)
-#
-# @app.get("/")
-# async def root():
-#     return {"message": "Shop is open for business!"}
+app.include_router(review.router)
+
+@app.get("/")
+async def root():
+    return {"message": "Shop is open for business!"}

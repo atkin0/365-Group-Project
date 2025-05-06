@@ -21,44 +21,44 @@ depends_on: Union[str, Sequence[str], None] = None
 def upgrade() -> None:
 
     op.create_table(
-        "Reviews",
+        "reviews",
         sa.Column("id", sa.Integer, primary_key=True),
         sa.Column("score", sa.Integer, nullable=False),
         sa.Column("text", sa.Text, nullable=False),
-        sa.Column("published", sa.Boolean, default=False, nullable=False),
+        sa.Column("published", sa.Boolean, server_default=sa.sql.expression.literal(False), nullable=False),
         sa.Column("user_id", sa.Integer, nullable=False),
         sa.Column("game_id", sa.Integer, nullable=False),
 
     )
 
     op.create_table(
-        "Users",
+        "users",
         sa.Column("id", sa.Integer, primary_key=True),
         sa.Column("username", sa.String, nullable=False),
         sa.Column("private_account", sa.Boolean, nullable=False),
     )
 
     op.create_table(
-        "Friends",
+        "friends",
         sa.Column("user_adding_id", sa.Integer, primary_key=True),
         sa.Column("user_added_id", sa.Integer, primary_key=True),
     )
 
 
     op.create_table(
-        "Games",
+        "games",
         sa.Column("id", sa.Integer, primary_key=True),
         sa.Column("name", sa.String, nullable=False),
         sa.Column("genre_id", sa.Integer, nullable=False),
     )
 
     op.create_table(
-        "Genres",
+        "genres",
         sa.Column("id", sa.Integer, primary_key=True),
         sa.Column("name", sa.String, nullable=False),
     )
     op.create_table(
-        "Optional_reviews",
+        "optional_reviews",
         sa.Column("id", sa.Integer, primary_key=True),
         sa.Column("review_name", sa.String, nullable=False),
         sa.Column("optional_rating", sa.Integer, nullable=False),
@@ -70,4 +70,26 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     """Downgrade schema."""
-    pass
+    op.drop_table(
+        "reviews"
+    )
+
+    op.drop_table(
+        "users"
+    )
+
+    op.drop_table(
+        "friends"
+    )
+
+
+    op.drop_table(
+        "games"
+    )
+
+    op.drop_table(
+        "genres"
+    )
+    op.drop_table(
+        "optional_reviews"
+    )
