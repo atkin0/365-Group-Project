@@ -57,12 +57,20 @@ def upgrade() -> None:
         sa.Column("id", sa.Integer, primary_key=True),
         sa.Column("name", sa.String, nullable=False),
     )
+
     op.create_table(
         "optional_reviews",
         sa.Column("id", sa.Integer, primary_key=True),
         sa.Column("review_name", sa.String, nullable=False),
         sa.Column("optional_rating", sa.Integer, nullable=False),
         sa.Column("review_id", sa.Integer, nullable=False)
+    )
+
+    op.create_table(
+        "History",
+        sa.Column("user_id", sa.Integer, primary_key=True),
+        sa.Column("game_id", sa.Integer, primary_key=True),
+        sa.Column("time_played", sa.Float, primary_key=True),
     )
 
     pass
