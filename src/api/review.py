@@ -24,7 +24,7 @@ class OptionalReviews(BaseModel):
 class ReviewCreateResponse(BaseModel):
     review_id: int
 
-@router.post("/review", response_model=ReviewCreateResponse)
+@router.post("/", response_model=ReviewCreateResponse)
 def send_review(review: Reviews):
     with db.engine.begin() as connection:
         result = connection.execute(
@@ -39,7 +39,7 @@ def send_review(review: Reviews):
         ).scalar_one()
     return ReviewCreateResponse(review_id=result)
 
-@router.post("/review/{review_id}/optional", status_code=status.HTTP_204_NO_CONTENT)
+@router.post("/{review_id}/optional", status_code=status.HTTP_204_NO_CONTENT)
 def optional_review(review_id: int, optional: OptionalReviews):
     with db.engine.begin() as connection:
         result = connection.execute(
@@ -54,7 +54,7 @@ def optional_review(review_id: int, optional: OptionalReviews):
         )
     pass
 
-@router.post("/review/{review_id}/publish", status_code=status.HTTP_204_NO_CONTENT)
+@router.post("/{review_id}/publish", status_code=status.HTTP_204_NO_CONTENT)
 def post_review(review_id: int):
     with db.engine.begin() as connection:
         connection.execute(
