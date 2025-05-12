@@ -103,3 +103,6 @@ def downgrade() -> None:
     op.drop_table(
         "optional_reviews"
     )
+    op.drop_table(
+        "history"
+    )
