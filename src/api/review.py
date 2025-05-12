@@ -98,3 +98,23 @@ def patch_optional_review(review_id: int, optional: OptionalReviews):
             {"review_id": review_id, "review_name": optional.aspect_to_review, "optional_rating": optional.optional_rating}
         )
     pass
+
+@router.post("/review/{review_id}/comments", status_code=status.HTTP_200_OK)
+def post_comment(review_id: int, user_id: int, comment: str):
+    with db.engine.begin() as connection:
+        comment_id = connection.execute(
+            sqlalchemy.text(
+                """
+                INSERT INTO comments (review_id, user_id, text)
+                VALUES (:review_id, :user_id, :text)
+                RETURNING id
+                """
+            ),
+            {
+                "review_id": review_id,
+                "user_id": user_id,
+                "text": comment,
+            }
+        )
+
+        return {"comment_id": comment_id}
