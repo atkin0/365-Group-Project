@@ -1,105 +1,196 @@
 from fastapi import APIRouter, Depends, status
+from mypy.checkexpr import defaultdict
 from pydantic import BaseModel
 import sqlalchemy
 from src.api import auth
 from src import database as db
+from typing import List
 
 router = APIRouter(
-    prefix="/review",
-    tags=["review"],
+    prefix="/Recommendation",
+    tags=["Recommendation"],
     dependencies=[Depends(auth.get_api_key)],
 )
 
-class Reviews(BaseModel):
-    user_id: int
+class Recommendation(BaseModel):
+    game_name: int
+    score: int
+    reviews: List[str]
+
+class GameRanked(BaseModel):
     game_id: int
     score: int
-    description: str
 
 
-class OptionalReviews(BaseModel):
-    aspect_to_review: str
-    optional_rating: int
+@router.post("/Recommendation", status_code=List[Recommendation])
+def popular_recommendations(user_id: int):
 
-class ReviewCreateResponse(BaseModel):
-    review_id: int
-
-@router.post("/review", response_model=ReviewCreateResponse)
-def send_review(review: Reviews):
     with db.engine.begin() as connection:
-        result = connection.execute(
-            sqlalchemy.text(
-                """
-                INSERT INTO reviews (user_id, score, text, game_id)
-                VALUES (:user_id, :score, :text, :game_id)
-                RETURNING id
-                """
-            ),
-            [{"user_id": review.user_id, "score": review.score, "text": review.description, "game_id": review.game_id}],
-        ).scalar_one()
-    return ReviewCreateResponse(review_id=result)
-
-@router.post("/review/{review_id}/optional", status_code=status.HTTP_204_NO_CONTENT)
-def optional_review(review_id: int, optional: OptionalReviews):
-    with db.engine.begin() as connection:
-        result = connection.execute(
-            sqlalchemy.text(
-                """
-                INSERT INTO optional_reviews (review_name, optional_rating, review_id)
-                VALUES (:review_name, :optional_rating, :review_id)
-                RETURNING id
-                """
-            ),
-            [{"review_name": optional.aspect_to_review, "optional_rating": optional.optional_rating, "review_id": review_id}],
-        )
-    pass
-
-@router.post("/Recommendation", status_code=status.HTTP_204_NO_CONTENT)
-def game_recommendations(user_id: int):
-    with db.engine.begin() as connection:
-        genres = connection.execute(
+        genres_recent = connection.execute(
             sqlalchemy.text(
                 """
                 SELECT games.genre_id AS genre_id
                 FROM history
-                JOIN games on history.game_id = games.game_id
+                JOIN games on history.game_id = games.id
                 WHERE user_id = :user_id
-                ORDER BY last_played, time_played
-                LIMIT 5
+                ORDER BY last_played
+                LIMIT 10
                 """
             ),
             [{"user_id": user_id}],
-        )
+        ).fetchall()
 
-        genres = connection.execute(
+        genres_most = connection.execute(
             sqlalchemy.text(
                 """
                 SELECT games.genre_id AS genre_id
                 FROM history
-                JOIN games on history.game_id = games.game_id
+                JOIN games on history.game_id = games.id
                 WHERE user_id = :user_id
-                ORDER BY last_played, time_played
-                LIMIT 5
+                ORDER BY time_played
+                LIMIT 10
                 """
             ),
             [{"user_id": user_id}],
-        )
+        ).fetchall()
 
+        genres_multi = defaultdict(lambda: 1)
 
+        multiplier = 1.2
+        for genre in genres_most:
+            genres_multi[genre.genre_id] *= multiplier
+            multiplier -= 0.2
 
-    pass
+        multiplier = 1.1
+        for genre in genres_recent:
+            genres_multi[genre.genre_id] *= multiplier
+            multiplier -= 0.1
 
-@router.post("/review/{review_id}/publish", status_code=status.HTTP_204_NO_CONTENT)
-def post_review(review_id: int):
-    with db.engine.begin() as connection:
-        connection.execute(
+        friend_games = connection.execute(
             sqlalchemy.text(
                 """
-                UPDATE reviews
-                SET published = True
-                WHERE id = :review_id
+                SELECT reviews.game_id, games.genre_id, AVG(reviews.score) as avg_score
+                FROM reviews
+                JOIN games on reviews.game_id = games.id
+                WHERE EXISTS (
+                    SELECT 1 FROM friends
+                    WHERE friends.user_adding_id = :user_id 
+                    AND friends.user_added_id = reviews.user_id
+                ) 
+                AND NOW() - reviews.updated_at < INTERVAL '30 days'
+                GROUP BY reviews.game_id, games.genre_id
+                ORDER BY avg_score DESC
+                LIMIT 10
                 """
             ),
-            {"review_id": review_id}
-        )
-    pass
+            [{"user_id": user_id}],
+        ).fetchall()
+
+        top_games = connection.execute(
+            sqlalchemy.text(
+                """
+                SELECT reviews.game_id, games.genre_id, AVG(reviews.score) as avg_score
+                FROM reviews
+                JOIN games on reviews.game_id = games.id
+                WHERE NOW() - reviews.updated_at < INTERVAL '30 days'
+                GROUP BY reviews.game_id, games.genre_id
+                HAVING COUNT(reviews.score) >= 1
+                ORDER BY avg_score DESC
+                LIMIT 10
+                """
+            ),
+            [{"user_id": user_id}],
+        ).fetchall()
+
+
+    games_scores = {}
+    for game in friend_games:
+        games_scores[game.game_id] = game.avg_score * genres_multi[game.genre_id]
+    for game in top_games:
+        if game.game_id in games_scores:
+            games_scores[game.game_id] *= 1.05
+        else:
+            games_scores[game.game_id] = game.avg_score * genres_multi[game.genre_id]
+
+    games_list = []
+    for game_id in games_scores:
+        games_list.append(GameRanked(game_id=game_id, score=games_scores[game_id]))
+    games_list.sort(key=lambda game: game.score, reverse=True)
+
+    recommendations: List[Recommendation] = []
+    with db.engine.begin() as connection:
+        for game in games_list:
+            game_name = connection.execute(
+                sqlalchemy.text(
+                    """
+                    SELECT game
+                    FROM games
+                    WHERE id = :id
+                    """
+                ),
+                {"id": game.game_id}
+            ).fetchone()[0]
+
+            score = connection.execute(
+                sqlalchemy.text(
+                    """
+                    SELECT AVG(score) as avg_score
+                    FROM reviews
+                    WHERE game_id = :game_id
+                    GROUP BY game_id
+                    """
+                )
+            ).fetchone()[0]
+
+            friend_reviews = connection.execute(
+                sqlalchemy.text(
+                    """
+                    SELECT text
+                    FROM reviews
+                    WHERE game_id = :game_id
+                    AND EXISTS (
+                        SELECT 1 FROM friends
+                        WHERE friends.user_adding_id = :user_id 
+                        AND friends.user_added_id = reviews.user_id
+                    ) 
+                    ORDER BY updated_at DESC
+                    LIMIT 3
+                    """
+                ),
+                {
+                    "user_id": user_id,
+                    "game_id": game.game_id,
+                },
+            ).fetchall()
+
+            regular_reviews = connection.execute(
+                sqlalchemy.text(
+                    """
+                    SELECT text
+                    FROM reviews
+                    WHERE game_id = :game_id
+                    AND NOT EXISTS (
+                        SELECT 1 FROM friends
+                        WHERE friends.user_adding_id = :user_id 
+                        AND friends.user_added_id = reviews.user_id
+                    ) 
+                    ORDER BY updated_at DESC
+                    LIMIT 3
+                    """
+                ),
+                {
+                    "user_id": user_id,
+                    "game_id": game.game_id,
+                },
+            ).fetchall()
+
+            reviews = []
+
+            for review in regular_reviews:
+                reviews.append(review.text)
+            for review in friend_reviews:
+                reviews.append(review.text)
+
+            recommendations.append(Recommendation(game_name=game_name, score=score, reviews=reviews))
+
+    return recommendations
