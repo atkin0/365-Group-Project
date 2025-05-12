@@ -230,7 +230,6 @@ The API calls are made in this sequence when making a review:
 [
     {
         "setting_id": "int",
-        "setting_name": "string",
         "setting_value": "int"
     }
 ]
@@ -244,6 +243,7 @@ The API calls are made in this sequence when making a review:
 [
     {
         "setting_id": "int",
+        "setting_name": "string",
         "setting_value": "int"
     }
 ]
