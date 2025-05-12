@@ -5,36 +5,29 @@ from src.api import auth
 from src import database as db
 
 router = APIRouter(
-    prefix="/review",
-    tags=["review"],
+    prefix="/admin",
+    tags=["admin"],
     dependencies=[Depends(auth.get_api_key)],
 )
 
-class Reviews(BaseModel):
-    user_id: int
-    game_id: int
-    score: int
-    description: str
 
-
-class OptionalReviews(BaseModel):
-    aspect_to_review: str
-    optional_rating: int
-
-class ReviewCreateResponse(BaseModel):
-    review_id: int
-
-
-@router.delete("/admin/delete", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/admin/delete", status_code=status.HTTP_200_OK)
 def delete_post(review_id: int):
     with db.engine.begin() as connection:
-        connection.execute(
+        result = connection.execute(
             sqlalchemy.text(
                 """
+                DELETE FROM optional_reviews
+                WHERE review_id = :review_id;
+                
                 DELETE FROM reviews
-                WHERE review.id = review_id
+                WHERE id = :review_id;
                 """
             ),
-            [{"review_id": review_id}],
+            {"review_id": review_id},
         )
-    pass
+
+        if result.rowcount == 0:
+            return {"success": False}
+        else:
+            return {"success": True}
