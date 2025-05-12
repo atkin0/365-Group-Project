@@ -343,31 +343,6 @@ The API calls are made in this sequence when making a review:
 ]
 ```
 
-## 7. Who's Online
-### 7.1: `/Online/` 
-**Description**: Which of the user's friends are online and what game they are currently playing
-
-**Request**:  
-
-```json  
-[
-    {
-        "user_id": "int"
-    }
-]
-```
-
-**Response**:  
-```json  
-
-[
-    {
-        "user_id": "int",
-        "game_id": "int"
-    }
-]
-```
-
 ## 8. Comment On Review
 ### 8.1: `/comments/` (POST)  
 **Description**: Creates a new comment for a user to post on someone else’s review.
