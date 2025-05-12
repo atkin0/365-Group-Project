@@ -40,7 +40,8 @@ def upgrade() -> None:
         "settings",
         sa.Column("id", sa.Integer, primary_key=True),
         sa.Column("user_id", sa.Integer, nullable=False),
-        sa.Column("private", sa.Integer, nullable=False)
+        sa.Column("name", sa.String, nullable=False),
+        sa.Column("value", sa.Integer, nullable=False)
     )
 
     op.create_table(

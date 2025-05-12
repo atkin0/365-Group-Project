@@ -21,11 +21,9 @@ class User(BaseModel):
     user_id: int
     username: str
 
-class Setting(BaseModel):
-    setting_id: int
-    private: int
 
-class Edit_Setting(BaseModel):
+
+class Setting(BaseModel):
     id: int
     name: str
     value: int
@@ -34,7 +32,7 @@ class Reviews(BaseModel):
     user_id: int
     game_id: int
     score: int
-    description: str
+    text: str
 
 
 
@@ -57,15 +55,14 @@ def create_user(new_user: CreateUser):
         connection.execute(
             sqlalchemy.text(
                 """
-                INSERT INTO users (user_id, private)
-                VALUES (:user_id, :private)
-                RETURNING id
+                INSERT INTO settings (user_id, name, value)
+                VALUES (:user_id, 'private', :private_value)
                 """
             ),
-            [{"user_id": result, "private": new_user.private}],
+            [{"user_id": result, "private_value": new_user.private}],
         )
 
-    return UserCreateResponse(cart_id=result)
+    return UserCreateResponse(user_id=result)
 
 @router.get("/{user_id}/add",  status_code=status.HTTP_204_NO_CONTENT)
 def add_friends(user: User, friend: User):
@@ -76,18 +73,17 @@ def add_friends(user: User, friend: User):
         friends = connection.execute(
             sqlalchemy.text(
                 """
-                INSERT INTO users (user_adding_id, user_added_id)
+                INSERT INTO friends (user_adding_id, user_added_id)
                 VALUES (:user_adding_id, :user_added_id)
                 """
             ),
-            [{"user_adding_id": user.user_id, "user_added_id": user.user_id}]
+            [{"user_adding_id": user.user_id, "user_added_id": friend.user_id}]
         )
         
-    pass
 
 
 @router.get("/{user_id}/friends", response_model= list[User])
-def display_friends(new_user: User):
+def display_friends(user: User):
     """
     Display a users list of friends.
     """
@@ -102,6 +98,7 @@ def display_friends(new_user: User):
                 WHERE f1.user_adding_id = :user_id;
                 """
             ),
+            [{"user_id": user.user_id}]
         )
         for friend in friends:
             result = connection.execute(
@@ -113,49 +110,57 @@ def display_friends(new_user: User):
                     """
                 ),
                 [{"friend_id": friend.id}],
-            )
-            friends_list.append(User(user_id=result.id, user_name= result.username))
+            ).fetchone()
+            friends_list.append(User(user_id=result.id, username= result.username))
         
     return friends_list
 
-@router.get("/{user_id}/settings", response_model= Setting)
-def show_settings(user: User):
+@router.get("/{user_id}/settings", response_model= list[Setting])
+def show_settings(user_id: int):
     """
     Display a users settings.
     """
+    setting_list = []
     with db.engine.begin() as connection:
-        result = connection.execute(
+        results = connection.execute(
             sqlalchemy.text(
                 """
-                SELECT *
+                SELECT id, name, value
                 FROM settings
-                where user_id = :user_id
+                WHERE user_id = :user_id
                 """
             ),
-            [{"user_id": user.user_id}]
-        )
+            [{"user_id": user_id}]
+        ).fetchall()
         
-    return Setting(setting_id = result.id, private= result.private)
+        for row in results:
+            setting_list.append(
+                Setting(
+                    id=row.id,
+                    name=row.name,
+                    value=row.value
+                )
+            )
+        
+    return setting_list
 
 @router.patch("/{user_id}/settings/edit", status_code=status.HTTP_204_NO_CONTENT)
-def edit_settings(setting: Edit_Setting):
+def edit_settings(user_id: int, setting: Setting):
     """
     Edit a users settings.
     """
     with db.engine.begin() as connection:
-        result = connection.execute(
+        connection.execute(
             sqlalchemy.text(
                 """
                 UPDATE settings
-                SET :setting_name = :setting_value
-                WHERE setting_id = :setting_id
+                SET value = :value
+                WHERE id = :id AND user_id = :user_id AND name = :name
                 """
             ),
-            [{"setting_name": setting.name, "setting_value": setting.value, "setting_id": setting.id}]
+            [{"value": setting.value, "id": setting.id, "user_id": user_id, "name" :setting.name}]
         )
         
-    pass 
-
 @router.get("/{user_id}/history", response_model= list[Reviews])
 def show_history(user: User):
     """
@@ -177,9 +182,9 @@ def show_history(user: User):
             reviews_list.append(
                 Reviews(
                     user_id= user.user_id, 
-                    game_id=result.game_id, 
-                    score = result.score, 
-                    description=result.description
+                    game_id=review.game_id, 
+                    score = review.score, 
+                    text=review.text
                 )
             )
         
@@ -209,9 +214,9 @@ def show_top(user: User):
             reviews_list.append(
                 Reviews(
                     user_id= user.user_id, 
-                    game_id=result.game_id, 
-                    score = result.score, 
-                    description=result.description
+                    game_id=review.game_id, 
+                    score = review.score, 
+                    text=review.text
                 )
             )
         
