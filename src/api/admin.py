@@ -1,0 +1,33 @@
+from fastapi import APIRouter, Depends, status
+from pydantic import BaseModel
+import sqlalchemy
+from src.api import auth
+from src import database as db
+
+router = APIRouter(
+    prefix="/admin",
+    tags=["admin"],
+    dependencies=[Depends(auth.get_api_key)],
+)
+
+
+@router.delete("/admin/delete", status_code=status.HTTP_200_OK)
+def delete_post(review_id: int):
+    with db.engine.begin() as connection:
+        result = connection.execute(
+            sqlalchemy.text(
+                """
+                DELETE FROM optional_reviews
+                WHERE review_id = :review_id;
+                
+                DELETE FROM reviews
+                WHERE id = :review_id;
+                """
+            ),
+            {"review_id": review_id},
+        )
+
+        if result.rowcount == 0:
+            return {"success": False}
+        else:
+            return {"success": True}

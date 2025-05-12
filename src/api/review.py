@@ -68,3 +68,33 @@ def post_review(review_id: int):
             {"review_id": review_id}
         )
     pass
+
+@router.post("/review/{review_id}/edit", status_code=status.HTTP_204_NO_CONTENT)
+def patch_review(review_id: int, review: Reviews):
+    with db.engine.begin() as connection:
+        connection.execute(
+            sqlalchemy.text(
+                """
+                UPDATE reviews (user_id, score, text, game_id)
+                VALUES (:user_id, :score, :text, :game_id)
+                WHERE id = :review_id
+                """
+            ),
+            {"review_id": review_id, "user_id": review.user_id, "score": review.score, "text": review.description, "game_id": review.game_id}
+        )
+    pass
+
+@router.post("/review/{review_id}/edit/optional", status_code=status.HTTP_204_NO_CONTENT)
+def patch_optional_review(review_id: int, optional: OptionalReviews):
+    with db.engine.begin() as connection:
+        connection.execute(
+            sqlalchemy.text(
+                """
+                UPDATE reviews (review_name, optional_rating)
+                VALUES (:review_name, :optional_rating)
+                WHERE id = :review_id
+                """
+            ),
+            {"review_id": review_id, "review_name": optional.aspect_to_review, "optional_rating": optional.optional_rating}
+        )
+    pass

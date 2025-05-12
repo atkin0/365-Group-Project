@@ -9,7 +9,7 @@ from typing import Sequence, Union
 
 from alembic import op
 import sqlalchemy as sa
-from sqlalchemy.dialects.mysql import DATETIME
+from sqlalchemy import ForeignKey
 
 # revision identifiers, used by Alembic.
 revision: str = '9efe472aa4ed'
@@ -81,6 +81,15 @@ def upgrade() -> None:
         sa.Column("last_played", sa.DateTime(timezone=True), default=sa.func.now, onupdate=sa.func.now, nullable=False),
     )
 
+    op.create_table(
+        "comments",
+        sa.Column("comment_id", sa.Integer, primary_key=True),
+        sa.Column("review_id", sa.Integer, ForeignKey("reviews.id", ondelete="CASCADE"), nullable=False),
+        sa.Column("user_id", sa.Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False),
+        sa.Column("text", sa.Text, nullable=False),
+        sa.Column("updated_at", sa.DateTime(timezone=True), default=sa.func.now, onupdate=sa.func.now, nullable=False),
+    )
+
     pass
 
 
@@ -108,4 +117,7 @@ def downgrade() -> None:
     )
     op.drop_table(
         "optional_reviews"
+    )
+    op.drop_table(
+        "history"
     )
