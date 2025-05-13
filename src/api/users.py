@@ -22,7 +22,6 @@ class User(BaseModel):
     username: str
 
 
-
 class Setting(BaseModel):
     id: int
     name: str
