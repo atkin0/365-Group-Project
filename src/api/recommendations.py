@@ -22,7 +22,7 @@ class GameRanked(BaseModel):
     score: int
 
 
-# @router.get("/Recommendation", response_model=List[Recommendation])
+# @router.get("/", response_model=List[Recommendation])
 # def popular_recommendations(user_id: int):
 #
 #     with db.engine.begin() as connection:
