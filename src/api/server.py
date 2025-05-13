@@ -20,7 +20,7 @@ app = FastAPI(
     openapi_tags=tags_metadata,
 )
 
-origins = ["https://potion-exchange.vercel.app"]
+origins = [""]
 
 app.add_middleware(
     CORSMiddleware,
@@ -35,4 +35,4 @@ app.include_router(review.router)
 
 @app.get("/")
 async def root():
-    return {"message": "Shop is open for business!"}
+    return {"message": "Socialize in the Society for Gamers"}
