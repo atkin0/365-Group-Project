@@ -16,13 +16,15 @@ class Reviews(BaseModel):
     score: int
     description: str
 
-
 class OptionalReviews(BaseModel):
     aspect_to_review: str
     optional_rating: int
 
 class ReviewCreateResponse(BaseModel):
     review_id: int
+
+class PostCommentResponse(BaseModel):
+    comment_id: int
 
 @router.post("/", response_model=ReviewCreateResponse)
 def send_review(review: Reviews):
@@ -98,9 +100,6 @@ def patch_optional_review(review_id: int, optional: OptionalReviews):
             {"review_id": review_id, "review_name": optional.aspect_to_review, "optional_rating": optional.optional_rating}
         )
     pass
-
-class PostCommentResponse(BaseModel):
-    comment_id: int
 
 @router.post("/{review_id}/comments", status_code=status.HTTP_200_OK, response_model=PostCommentResponse)
 def post_comment(review_id: int, user_id: int, comment: str):
