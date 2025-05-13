@@ -10,8 +10,11 @@ router = APIRouter(
     dependencies=[Depends(auth.get_api_key)],
 )
 
+class PostDeletionResponse(BaseModel):
+    success: bool
 
-@router.delete("/admin/delete", status_code=status.HTTP_200_OK)
+
+@router.delete("/admin/delete", status_code=status.HTTP_200_OK, response_model=PostDeletionResponse)
 def delete_post(review_id: int):
     with db.engine.begin() as connection:
         result = connection.execute(
@@ -28,6 +31,6 @@ def delete_post(review_id: int):
         )
 
         if result.rowcount == 0:
-            return {"success": False}
+            return PostDeletionResponse(success=False)
         else:
-            return {"success": True}
+            return PostDeletionResponse(success=False)

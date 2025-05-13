@@ -99,7 +99,10 @@ def patch_optional_review(review_id: int, optional: OptionalReviews):
         )
     pass
 
-@router.post("/{review_id}/comments", status_code=status.HTTP_200_OK)
+class PostCommentResponse(BaseModel):
+    comment_id: int
+
+@router.post("/{review_id}/comments", status_code=status.HTTP_200_OK, response_model=PostCommentResponse)
 def post_comment(review_id: int, user_id: int, comment: str):
     with db.engine.begin() as connection:
         comment_id = connection.execute(
@@ -117,4 +120,4 @@ def post_comment(review_id: int, user_id: int, comment: str):
             }
         )
 
-        return {"comment_id": comment_id}
+        return PostCommentResponse(comment_id=comment_id)
