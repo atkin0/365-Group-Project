@@ -5,8 +5,8 @@ from src.api import auth
 from src import database as db
 
 router = APIRouter(
-    prefix="/review",
-    tags=["review"],
+    prefix="/reviews",
+    tags=["reviews"],
     dependencies=[Depends(auth.get_api_key)],
 )
 
@@ -69,7 +69,7 @@ def post_review(review_id: int):
         )
     pass
 
-@router.post("/review/{review_id}/edit", status_code=status.HTTP_204_NO_CONTENT)
+@router.post("/{review_id}/edit", status_code=status.HTTP_204_NO_CONTENT)
 def patch_review(review_id: int, review: Reviews):
     with db.engine.begin() as connection:
         connection.execute(
@@ -84,7 +84,7 @@ def patch_review(review_id: int, review: Reviews):
         )
     pass
 
-@router.post("/review/{review_id}/edit/optional", status_code=status.HTTP_204_NO_CONTENT)
+@router.post("/{review_id}/edit/optional", status_code=status.HTTP_204_NO_CONTENT)
 def patch_optional_review(review_id: int, optional: OptionalReviews):
     with db.engine.begin() as connection:
         connection.execute(
@@ -99,7 +99,7 @@ def patch_optional_review(review_id: int, optional: OptionalReviews):
         )
     pass
 
-@router.post("/review/{review_id}/comments", status_code=status.HTTP_200_OK)
+@router.post("/{review_id}/comments", status_code=status.HTTP_200_OK)
 def post_comment(review_id: int, user_id: int, comment: str):
     with db.engine.begin() as connection:
         comment_id = connection.execute(
