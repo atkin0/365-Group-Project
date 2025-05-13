@@ -32,8 +32,8 @@ def send_review(review: Reviews):
         result = connection.execute(
             sqlalchemy.text(
                 """
-                INSERT INTO reviews (user_id, score, text, game_id)
-                VALUES (:user_id, :score, :text, :game_id)
+                INSERT INTO reviews (user_id, score, text, game_id, updated_at)
+                VALUES (:user_id, :score, :text, :game_id, NOW())
                 RETURNING id
                 """
             ),
@@ -47,13 +47,14 @@ def optional_review(review_id: int, optional: OptionalReviews):
         result = connection.execute(
             sqlalchemy.text(
                 """
-                INSERT INTO optional_reviews (review_name, optional_rating, review_id)
-                VALUES (:review_name, :optional_rating, :review_id)
+                INSERT INTO optional_reviews (review_name, optional_rating, review_id, updated_at)
+                VALUES (:review_name, :optional_rating, :review_id, NOW())
                 RETURNING id
                 """
             ),
             [{"review_name": optional.aspect_to_review, "optional_rating": optional.optional_rating, "review_id": review_id}],
-        )
+        ).scalar_one()
+    return ReviewCreateResponse(review_id=result)
     pass
 
 @router.post("/{review_id}/publish", status_code=status.HTTP_204_NO_CONTENT)
@@ -77,8 +78,8 @@ def patch_review(review_id: int, review: Reviews):
         connection.execute(
             sqlalchemy.text(
                 """
-                UPDATE reviews (user_id, score, text, game_id)
-                VALUES (:user_id, :score, :text, :game_id)
+                UPDATE reviews 
+                SET user_id = :user_id, score = :score, text = :text, game_id = :game_id, updated_at = NOW(), published = False
                 WHERE id = :review_id
                 """
             ),
@@ -92,8 +93,8 @@ def patch_optional_review(review_id: int, optional: OptionalReviews):
         connection.execute(
             sqlalchemy.text(
                 """
-                UPDATE reviews (review_name, optional_rating)
-                VALUES (:review_name, :optional_rating)
+                UPDATE optional_reviews 
+                SET review_name = :review_name, optional_rating = :optional_rating, updated_at = NOW()
                 WHERE id = :review_id
                 """
             ),
