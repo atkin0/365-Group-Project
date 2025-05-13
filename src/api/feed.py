@@ -10,17 +10,38 @@ router = APIRouter(
     dependencies=[Depends(auth.get_api_key)],
 )
 
-@router.get("/", response_model=ReviewCreateResponse)
-def send_review(review: Reviews):
+@router.get("/", status_code=status.HTTP_200_OK)
+def get_feed(user_id: int):
+    feed = []
+
     with db.engine.begin() as connection:
-        result = connection.execute(
+        reviews = connection.execute(
             sqlalchemy.text(
                 """
-                INSERT INTO reviews (user_id, score, text, game_id)
-                VALUES (:user_id, :score, :text, :game_id)
-                RETURNING id
+                SELECT games.name AS game_title, users.username AS username, reviews.score AS score, reviews.text AS description
+                FROM reviews
+                JOIN games on reviews.game_id = games.id
+                JOIN users on reviews.user_id = users.id
+                WHERE EXISTS (
+                    SELECT 1 FROM friends
+                    WHERE friends.user_adding_id = :user_id
+                    AND friends.user_added_id = reviews.user_id
+                )
+                AND NOW() - reviews.updated_at < INTERVAL '30 days'
+                LIMIT 10
                 """
             ),
-            [{"user_id": review.user_id, "score": review.score, "text": review.description, "game_id": review.game_id}],
-        ).scalar_one()
-    return ReviewCreateResponse(review_id=result)
+            {
+                "user_id": user_id,
+            },
+        ).fetchall()
+
+        for review in reviews:
+            feed.append({
+                "game_title": review.game_title,
+                "username": review.username,
+                "score": review.score,
+                "description": review.description
+            })
+
+    return feed
