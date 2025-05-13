@@ -1,5 +1,8 @@
+from typing import List
+
 from fastapi import APIRouter, Depends, status
 import sqlalchemy
+from pydantic import BaseModel
 from src.api import auth
 from src import database as db
 
@@ -9,7 +12,13 @@ router = APIRouter(
     dependencies=[Depends(auth.get_api_key)],
 )
 
-@router.get("/", status_code=status.HTTP_200_OK)
+class FeedItem(BaseModel):
+    game_title: str
+    username: str
+    score: int
+    description: str
+
+@router.get("/", status_code=status.HTTP_200_OK, response_model=List[FeedItem])
 def get_feed(user_id: int):
     feed = []
 
@@ -36,11 +45,13 @@ def get_feed(user_id: int):
         ).fetchall()
 
         for review in reviews:
-            feed.append({
-                "game_title": review.game_title,
-                "username": review.username,
-                "score": review.score,
-                "description": review.description
-            })
+            feed.append(
+                FeedItem(
+                    game_title=review.game_title,
+                    username=review.username,
+                    score=review.score,
+                    description=review.description
+                )
+            )
 
     return feed

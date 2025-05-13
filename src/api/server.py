@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from src.api import review
+from src.api import admin, feed, recommendations, review, users
 from starlette.middleware.cors import CORSMiddleware
 
 description = """
@@ -30,8 +30,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
+app.include_router(admin.router)
+app.include_router(feed.router)
+app.include_router(recommendations.router)
 app.include_router(review.router)
+app.include_router(users.router)
+
 
 @app.get("/")
 async def root():
