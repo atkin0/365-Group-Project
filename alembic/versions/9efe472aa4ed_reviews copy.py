@@ -27,7 +27,7 @@ def upgrade() -> None:
         sa.Column("published", sa.Boolean, server_default=sa.sql.expression.literal(False), nullable=False),
         sa.Column("user_id", sa.Integer, nullable=False),
         sa.Column("game_id", sa.Integer, nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), default=sa.func.now, onupdate=sa.func.now, nullable=False),
+        sa.Column("updated_at", sa.DateTime(timezone=True), default=sa.func.now(), onupdate=sa.func.now(), nullable=False),
     )
     op.create_table(
         "users",
@@ -63,7 +63,7 @@ def upgrade() -> None:
         sa.Column("review_name", sa.String, nullable=False),
         sa.Column("optional_rating", sa.Integer, nullable=False),
         sa.Column("review_id", sa.Integer, nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), default=sa.func.now, onupdate=sa.func.now, nullable=False),
+        sa.Column("updated_at", sa.DateTime(timezone=True), default=sa.func.now(), onupdate=sa.func.now(), nullable=False),
 
     )
     op.create_table(
@@ -71,7 +71,7 @@ def upgrade() -> None:
         sa.Column("user_id", sa.Integer, primary_key=True),
         sa.Column("game_id", sa.Integer, primary_key=True),
         sa.Column("time_played", sa.Float, nullable=False),
-        sa.Column("last_played", sa.DateTime(timezone=True), default=sa.func.now, onupdate=sa.func.now, nullable=False),
+        sa.Column("last_played", sa.DateTime(timezone=True), default=sa.func.now(), onupdate=sa.func.now(), nullable=False),
     )
     op.create_table(
         "comments",
@@ -79,7 +79,7 @@ def upgrade() -> None:
         sa.Column("review_id", sa.Integer, ForeignKey("reviews.id", ondelete="CASCADE"), nullable=False),
         sa.Column("user_id", sa.Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False),
         sa.Column("text", sa.Text, nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), default=sa.func.now, onupdate=sa.func.now, nullable=False),
+        sa.Column("updated_at", sa.DateTime(timezone=True), default=sa.func.now(), onupdate=sa.func.now(), nullable=False),
     )
 
 
