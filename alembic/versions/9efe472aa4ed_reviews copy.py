@@ -80,26 +80,9 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     """Downgrade schema."""
-    op.drop_table(
-        "reviews"
-    )
-
-    op.drop_table(
-        "users"
-    )
-
-    op.drop_table(
-        "friends"
-    )
-
-
-    op.drop_table(
-        "games"
-    )
-
-    op.drop_table(
-        "genres"
-    )
-    op.drop_table(
-        "optional_reviews"
-    )
+    op.drop_table("reviews")
+    op.drop_table("users")
+    op.drop_table("friends")
+    op.drop_table("games")
+    op.drop_table("genres")
+    op.drop_table("optional_reviews")
