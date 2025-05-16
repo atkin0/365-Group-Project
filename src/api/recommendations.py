@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, status
-from mypy.checkexpr import defaultdict
+from collections import defaultdict
 from pydantic import BaseModel
 import sqlalchemy
 from src.api import auth
@@ -7,13 +7,13 @@ from src import database as db
 from typing import List
 
 router = APIRouter(
-    prefix="/Recommendation",
-    tags=["Recommendation"],
+    prefix="/recommendation",
+    tags=["recommendation"],
     dependencies=[Depends(auth.get_api_key)],
 )
 
 class Recommendation(BaseModel):
-    game_name: int
+    game_name: str
     score: int
     reviews: List[str]
 
@@ -22,7 +22,7 @@ class GameRanked(BaseModel):
     score: int
 
 
-@router.post("/Recommendation", status_code=List[Recommendation])
+@router.get("/", response_model=List[Recommendation])
 def popular_recommendations(user_id: int):
 
     with db.engine.begin() as connection:
@@ -74,9 +74,9 @@ def popular_recommendations(user_id: int):
                 JOIN games on reviews.game_id = games.id
                 WHERE EXISTS (
                     SELECT 1 FROM friends
-                    WHERE friends.user_adding_id = :user_id 
+                    WHERE friends.user_adding_id = :user_id
                     AND friends.user_added_id = reviews.user_id
-                ) 
+                )
                 AND NOW() - reviews.updated_at < INTERVAL '30 days'
                 GROUP BY reviews.game_id, games.genre_id
                 ORDER BY avg_score DESC
@@ -129,7 +129,7 @@ def popular_recommendations(user_id: int):
                     """
                 ),
                 {"id": game.game_id}
-            ).fetchone()[0]
+            ).scalar_one()
 
             score = connection.execute(
                 sqlalchemy.text(
@@ -139,8 +139,11 @@ def popular_recommendations(user_id: int):
                     WHERE game_id = :game_id
                     GROUP BY game_id
                     """
-                )
-            ).fetchone()[0]
+                ),
+                {
+                    "game_id": game.game_id,
+                }
+            ).scalar_one()
 
             friend_reviews = connection.execute(
                 sqlalchemy.text(
@@ -150,9 +153,9 @@ def popular_recommendations(user_id: int):
                     WHERE game_id = :game_id
                     AND EXISTS (
                         SELECT 1 FROM friends
-                        WHERE friends.user_adding_id = :user_id 
+                        WHERE friends.user_adding_id = :user_id
                         AND friends.user_added_id = reviews.user_id
-                    ) 
+                    )
                     ORDER BY updated_at DESC
                     LIMIT 3
                     """
@@ -171,9 +174,9 @@ def popular_recommendations(user_id: int):
                     WHERE game_id = :game_id
                     AND NOT EXISTS (
                         SELECT 1 FROM friends
-                        WHERE friends.user_adding_id = :user_id 
+                        WHERE friends.user_adding_id = :user_id
                         AND friends.user_added_id = reviews.user_id
-                    ) 
+                    )
                     ORDER BY updated_at DESC
                     LIMIT 3
                     """
