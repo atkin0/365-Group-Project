@@ -24,7 +24,7 @@ class Review(BaseModel):
 
 
 #Returns most recent 20 games reviewed, so people can see whats been getting reviewed recently for inspiration
-@router.post("/games/", response_model=List[Game])
+@router.get("/", response_model=List[Game])
 def get_recent_games():
     with db.engine.begin() as connection:
         result = connection.execute(
@@ -44,7 +44,7 @@ def get_recent_games():
         return rows
     
 
-@router.post("/games/search",response_model=List[Game])
+@router.get("/search",response_model=List[Game])
 def search_games(search: str):
     with db.engine.begin() as connection:
         result = connection.execute(
@@ -61,7 +61,7 @@ def search_games(search: str):
         print(rows)
         return rows
 
-@router.post("/games/{game_id}",response_model=List[Review])
+@router.get("/{game_id}",response_model=List[Review])
 def get_reviews_for_games(search: str):
     with db.engine.begin() as connection:
         result = connection.execute(

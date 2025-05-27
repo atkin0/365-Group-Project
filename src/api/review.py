@@ -3,6 +3,7 @@ from pydantic import BaseModel
 import sqlalchemy
 from src.api import auth
 from src import database as db
+from typing import List
 
 router = APIRouter(
     prefix="/reviews",
@@ -25,6 +26,10 @@ class ReviewCreateResponse(BaseModel):
 
 class PostCommentResponse(BaseModel):
     comment_id: int
+
+class Comment(BaseModel):
+    username: str
+    text: str
 
 @router.post("/", response_model=ReviewCreateResponse)
 def send_review(review: Reviews):
@@ -49,15 +54,19 @@ def optional_review(review_id: int, optional: OptionalReviews):
                 """
                 INSERT INTO optional_reviews (review_name, optional_rating, review_id, updated_at)
                 VALUES (:review_name, :optional_rating, :review_id, NOW())
+                ON CONFLICT (review_name, review_id)
+                DO UPDATE SET 
+                optional_rating = :optional_rating, updated_at = NOW()
                 RETURNING id
                 """
             ),
             [{"review_name": optional.aspect_to_review, "optional_rating": optional.optional_rating, "review_id": review_id}],
         ).scalar_one()
-    return ReviewCreateResponse(review_id=result)
-    pass
 
-@router.post("/{review_id}/publish", status_code=status.HTTP_204_NO_CONTENT)
+    return ReviewCreateResponse(review_id=result)
+
+
+@router.patch("/{review_id}/publish", status_code=status.HTTP_204_NO_CONTENT)
 def post_review(review_id: int):
     with db.engine.begin() as connection:
         connection.execute(
@@ -72,7 +81,7 @@ def post_review(review_id: int):
         )
     pass
 
-@router.post("/{review_id}/edit", status_code=status.HTTP_204_NO_CONTENT)
+@router.patch("/{review_id}/edit", status_code=status.HTTP_204_NO_CONTENT)
 def patch_review(review_id: int, review: Reviews):
     with db.engine.begin() as connection:
         connection.execute(
@@ -84,21 +93,6 @@ def patch_review(review_id: int, review: Reviews):
                 """
             ),
             {"review_id": review_id, "user_id": review.user_id, "score": review.score, "text": review.description, "game_id": review.game_id}
-        )
-    pass
-
-@router.post("/{review_id}/edit/optional", status_code=status.HTTP_204_NO_CONTENT)
-def patch_optional_review(review_id: int, optional: OptionalReviews):
-    with db.engine.begin() as connection:
-        connection.execute(
-            sqlalchemy.text(
-                """
-                UPDATE optional_reviews 
-                SET review_name = :review_name, optional_rating = :optional_rating, updated_at = NOW()
-                WHERE id = :review_id
-                """
-            ),
-            {"review_id": review_id, "review_name": optional.aspect_to_review, "optional_rating": optional.optional_rating}
         )
     pass
 
@@ -121,3 +115,27 @@ def post_comment(review_id: int, user_id: int, comment: str):
         )
 
         return PostCommentResponse(comment_id=comment_id)
+
+@router.get("/{review_id}/comments", status_code=status.HTTP_200_OK, response_model=List[Comment])
+def post_comment(review_id: int):
+    with db.engine.begin() as connection:
+        results = connection.execute(
+            sqlalchemy.text(
+                """
+                SELECT username, text 
+                FROM comments
+                JOIN users on comments.user_id = users.id
+                WHERE review_id = :review_id
+                """
+            ),
+            {
+                "review_id": review_id,
+            }
+        )
+
+        comments: List[Comment] = []
+
+        for r in results:
+            comments.append(Comment(username=r.username, text=r.text))
+
+        return comments

@@ -14,7 +14,7 @@ class PostDeletionResponse(BaseModel):
     success: bool
 
 
-@router.delete("/admin/delete", status_code=status.HTTP_200_OK, response_model=PostDeletionResponse)
+@router.delete("/delete", status_code=status.HTTP_200_OK, response_model=PostDeletionResponse)
 def delete_post(review_id: int):
     with db.engine.begin() as connection:
         result = connection.execute(

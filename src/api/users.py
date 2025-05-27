@@ -63,7 +63,7 @@ def create_user(new_user: CreateUser):
 
     return UserCreateResponse(user_id=result)
 
-@router.get("/{user_id}/add",  status_code=status.HTTP_204_NO_CONTENT)
+@router.post("/{user_id}/add",  status_code=status.HTTP_204_NO_CONTENT)
 def add_friends(user: User, friend: User):
     """
     Add a user as a friend.
@@ -161,7 +161,7 @@ def edit_settings(user_id: int, setting: Setting):
         )
         
 @router.get("/{user_id}/history", response_model= list[Reviews])
-def show_history(user: User):
+def show_history(user_id: int):
     """
     Display a users history.
     """
@@ -175,12 +175,12 @@ def show_history(user: User):
                 WHERE user_id = :user_id
                 """
             ),
-            [{"user_id": user.user_id}]
+            [{"user_id": user_id}]
         )
         for review in result:
             reviews_list.append(
                 Reviews(
-                    user_id= user.user_id, 
+                    user_id= user_id,
                     game_id=review.game_id, 
                     score = review.score, 
                     text=review.text
@@ -191,7 +191,7 @@ def show_history(user: User):
 
 
 @router.get("/{user_id}/favorite", response_model= list[Reviews])
-def show_top(user: User):
+def show_top(user_id: int):
     """
     Display a users history.
     """
@@ -207,12 +207,12 @@ def show_top(user: User):
                 LIMIT 5
                 """
             ),
-            [{"user_id": user.user_id}]
+            [{"user_id": user_id}]
         )
         for review in result:
             reviews_list.append(
                 Reviews(
-                    user_id= user.user_id, 
+                    user_id= user_id,
                     game_id=review.game_id, 
                     score = review.score, 
                     text=review.text
