@@ -117,7 +117,7 @@ def post_comment(review_id: int, user_id: int, comment: str):
         return PostCommentResponse(comment_id=comment_id)
 
 @router.get("/{review_id}/comments", status_code=status.HTTP_200_OK, response_model=List[Comment])
-def post_comment(review_id: int):
+def get_comments(review_id: int):
     with db.engine.begin() as connection:
         results = connection.execute(
             sqlalchemy.text(

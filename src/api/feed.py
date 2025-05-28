@@ -18,7 +18,7 @@ class FeedItem(BaseModel):
     score: int
     description: str
 
-@router.get("/", status_code=status.HTTP_200_OK, response_model=List[FeedItem])
+@router.get("/{user_id}", status_code=status.HTTP_200_OK, response_model=List[FeedItem])
 def get_feed(user_id: int):
     feed = []
 

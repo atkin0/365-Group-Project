@@ -1,3 +1,5 @@
+from typing import List
+
 from fastapi import APIRouter, Depends, status
 from pydantic import BaseModel
 import sqlalchemy
@@ -16,11 +18,6 @@ class UserCreateResponse(BaseModel):
 class CreateUser(BaseModel):
     username: str
     private: int
-
-class User(BaseModel):
-    user_id: int
-    username: str
-
 
 class Setting(BaseModel):
     id: int
@@ -64,7 +61,7 @@ def create_user(new_user: CreateUser):
     return UserCreateResponse(user_id=result)
 
 @router.post("/{user_id}/add",  status_code=status.HTTP_204_NO_CONTENT)
-def add_friends(user: User, friend: User):
+def add_friends(user_id: int, friend_id: int):
     """
     Add a user as a friend.
     """
@@ -76,42 +73,57 @@ def add_friends(user: User, friend: User):
                 VALUES (:user_adding_id, :user_added_id)
                 """
             ),
-            [{"user_adding_id": user.user_id, "user_added_id": friend.user_id}]
+            [{"user_adding_id": user_id, "user_added_id": friend_id}]
         )
         
 
 
-@router.get("/{user_id}/friends", response_model= list[User])
-def display_friends(user: User):
+@router.get("/{user_id}/friends", response_model= List[str])
+def display_my_friended(user_id: int):
     """
     Display a users list of friends.
     """
     friends_list = []
     with db.engine.begin() as connection:
-        friends = connection.execute(
+        results = connection.execute(
             sqlalchemy.text(
                 """
-                SELECT f1.user_added_id AS id
-                FROM friends as f1
-                JOIN friends as f2 ON f1.user_adding_id = f2.user_added_id AND f1.user_added_id = f2.user_adding_id
-                WHERE f1.user_adding_id = :user_id;
+                SELECT users.username
+                FROM friends
+                JOIN users on friends.user_added_id = users.id
+                WHERE friends.user_adding_id = :user_id;
                 """
             ),
-            [{"user_id": user.user_id}]
+            [{"user_id": user_id}]
         )
-        for friend in friends:
-            result = connection.execute(
-                sqlalchemy.text(
-                    """
-                    SELECT id, username
-                    FROM users
-                    WHERE id = :friend_id
-                    """
-                ),
-                [{"friend_id": friend.id}],
-            ).fetchone()
-            friends_list.append(User(user_id=result.id, username= result.username))
-        
+
+        for r in results:
+            friends_list.append(r.username)
+
+    return friends_list
+
+@router.get("/{user_id}/friends", response_model= List[str])
+def display_friended_me(user_id: int):
+    """
+    Display a users list of friends.
+    """
+    friends_list = []
+    with db.engine.begin() as connection:
+        results = connection.execute(
+            sqlalchemy.text(
+                """
+                SELECT users.username
+                FROM friends
+                JOIN users on friends.user_adding_id = users.id
+                WHERE friends.user_added_id = :user_id;
+                """
+            ),
+            [{"user_id": user_id}]
+        )
+
+        for r in results:
+            friends_list.append(r.username)
+
     return friends_list
 
 @router.get("/{user_id}/settings", response_model= list[Setting])

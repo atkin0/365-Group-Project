@@ -33,4 +33,4 @@ def delete_post(review_id: int):
         if result.rowcount == 0:
             return PostDeletionResponse(success=False)
         else:
-            return PostDeletionResponse(success=False)
+            return PostDeletionResponse(success=True)
