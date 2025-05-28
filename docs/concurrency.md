@@ -1,9 +1,9 @@
 ## Concurrency Issues in Game Overview 
-## 1: Non-repeatable Read in Game Overview
+### 1: Non-repeatable Read in Game Overview
 
 When a user views a game overview while another user is updating the same game's basic information.
 
-### Sequence Diagram
+#### Sequence Diagram
 ```
 Transaction A (get_game_overview)   |   Transaction B (update_game)
 -----------------------------------|---------------------------
@@ -24,11 +24,11 @@ Commit                             |
 
 The user receives inconsistent data where the game title doesn't match the reviews being displayed. This creates confusion since the reviews might reference features specific to "Halo Infinite" while the title shows "Halo".
 
-## 2: Phantom Reads in Rating Calculation
+### 2: Phantom Reads in Rating Calculation
 
 When a user views a game overview with calculated aggregate rating while new reviews are being added.
 
-### Sequence Diagram
+#### Sequence Diagram
 ```
 Transaction A (get_game_overview)   |   Transaction B (add_review)
 -----------------------------------|---------------------------
@@ -50,7 +50,7 @@ Commit                             |
 The aggregate rating displayed to the user is no longer accurate because a new review was added during the transaction. This can mislead users about the game's current reception.
 
 
-## Recommended Isolation Level
+### Recommended Isolation Level
 
 To prevent these problems the solution is to use a Repeatable Read isolation level.
 This Prevents Non-repeatable Reads because it Ensures that if the transaction reads the same row twice, it gets the same value each time, maintaining consistency in the game information throughout the transaction. This also Prevents Phantom Reads because if the transaction runs a query twice, it sees the same set of rows each time, providing consistent aggregate calculations and review counts.
