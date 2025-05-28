@@ -186,7 +186,7 @@ def get_game_overview(game_id: int):
         game = connection.execute(
             sqlalchemy.text(
                 """
-                SELECT id, game as title 
+                SELECT id, game as title, genre.genre
                 FROM games 
                 JOIN genres genre ON games.genre_id = genre.id
                 WHERE games.id = :game_id
