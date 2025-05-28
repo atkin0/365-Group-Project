@@ -1,10 +1,11 @@
 import datetime
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, HTTPException
 from pydantic import BaseModel
 import sqlalchemy
 from src.api import auth
 from src import database as db
 from typing import List
+from statistics import mean
 
 router = APIRouter(
     prefix="/games",
@@ -50,7 +51,7 @@ class GameOverview(BaseModel):
     title: str
     aggregate_rating: float
     total_playtime: int = 0
-    reviews: List[Review] = []
+    reviews: List[WholeReview] = []
     optional_reviews: List[OptionalReview] = []
 
 
@@ -117,7 +118,9 @@ def get_game_overview(game_id: int):
         game = connection.execute(
             sqlalchemy.text(
                 """
-                SELECT id, title FROM games WHERE id = :game_id
+                SELECT id, game as title 
+                FROM games 
+                WHERE id = :game_id
                 """
             ),
             {"game_id": game_id}
@@ -165,7 +168,7 @@ def get_game_overview(game_id: int):
                 ) for comment in comments_data
             ]
             reviews.append(
-                Review(
+                WholeReview(
                     id=review.id,
                     user_id=review.user_id,
                     username=review.username,
