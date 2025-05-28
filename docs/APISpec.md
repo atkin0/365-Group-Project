@@ -384,3 +384,26 @@ The API calls are made in this sequence when making a review:
     }
 ]
 ```
+
+## 9. Recommendations (Complex Endpoint)
+### 8.1: `/recommendations/user_id` (GET)  
+**Description**: Gets recommended games based on user historical genres, recently played genres, overall top recent games, and friend's top recent games.
+
+**Request**:  
+```json  
+[
+    {
+        "user_id": "int",
+    }
+]
+```
+**Response**:  
+```json  
+[
+    {
+        "game_name": "string",
+        "score": "float",
+        "reviews": "string[]"
+    }
+]
+```

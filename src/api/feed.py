@@ -12,11 +12,18 @@ router = APIRouter(
     dependencies=[Depends(auth.get_api_key)],
 )
 
+class OptionalReview(BaseModel):
+    aspect: str
+    score: int
+
 class FeedItem(BaseModel):
     game_title: str
     username: str
     score: int
     description: str
+    optional_reviews: List[OptionalReview]
+
+
 
 @router.get("/{user_id}", status_code=status.HTTP_200_OK, response_model=List[FeedItem])
 def get_feed(user_id: int):
@@ -26,10 +33,10 @@ def get_feed(user_id: int):
         reviews = connection.execute(
             sqlalchemy.text(
                 """
-                SELECT games.name AS game_title, users.username AS username, reviews.score AS score, reviews.text AS description
+                SELECT games.name AS game_title, users.username AS username, reviews.score AS score, reviews.text AS description, reviews.id AS review_id
                 FROM reviews
-                JOIN games on reviews.game_id = games.id
-                JOIN users on reviews.user_id = users.id
+                JOIN games ON reviews.game_id = games.id
+                JOIN users ON reviews.user_id = users.id
                 WHERE EXISTS (
                     SELECT 1 FROM friends
                     WHERE friends.user_adding_id = :user_id
@@ -42,16 +49,32 @@ def get_feed(user_id: int):
             {
                 "user_id": user_id,
             },
-        ).fetchall()
-
-    for review in reviews:
-        feed.append(
-            FeedItem(
-                game_title=review.game_title,
-                username=review.username,
-                score=review.score,
-                description=review.description
-            )
         )
+
+        for review in reviews:
+            optional_reviews = connection.execute(
+                sqlalchemy.text(
+                    """
+                    SELECT review_name, optional_rating
+                    FROM optional_reviews
+                    WHERE review_id = :review_id
+                    """
+                ),
+                {
+                    "review_id": review.review_id,
+                }
+            )
+
+            optional_reviews = [OptionalReview(aspect=o_r.review_name, score=o_r.optional_rating) for o_r in optional_reviews]
+
+            feed.append(
+                FeedItem(
+                    game_title=review.game_title,
+                    username=review.username,
+                    score=review.score,
+                    description=review.description,
+                    optional_reviews=optional_reviews
+                )
+            )
 
     return feed
