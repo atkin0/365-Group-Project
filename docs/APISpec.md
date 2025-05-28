@@ -207,6 +207,38 @@ The API calls are made in this sequence when making a review:
     }
 ]
 ```
+### 3.4: `/games/{game_id}/overview` (GET)
+**Description**: Retrieves comprehensive information about a specific game including reviews, comments, optional reviews, and aggregate statistics.
+
+**Response**:
+```json
+{
+    "game_id": "int",
+    "title": "string",
+    "genre":"string",
+    "aggregate_rating": "float",
+    "total_playtime": "int",
+    "reviews": [
+        {
+            "id": "int",
+            "user_id": "int",
+            "username": "string",
+            "score": "float",
+            "text": "string",
+            "updated_at": "datetime"
+        }
+    ],
+    "optional_reviews": [
+        {
+            "id": "int",
+            "review_name": "string",
+            "optional_rating": "int",
+            "review_id": "int",
+            "updated_at": "datetime"
+        }
+    ]
+}
+```
 
 ## 4. View User Profile
 ### 4.1: `/users/{user_id}/friends` (GET)  
@@ -381,6 +413,22 @@ The API calls are made in this sequence when making a review:
 [
     {
         "success": "boolean"
+    }
+]
+```
+## 7. Game Recommendations
+### 7.1: `/recommendation/{user_id}` (GET)
+**Description**: Provides personalized game recommendations for a user based on their play history, genre preferences, and friend activity.
+
+**Response**:
+```json
+[
+    {
+        "game_name": "string",
+        "score": "float",
+        "reviews": [
+            "string"
+        ]
     }
 ]
 ```

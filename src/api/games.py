@@ -23,13 +23,6 @@ class Review(BaseModel):
     score: int
     text: str
 
-class Comment(BaseModel):
-    comment_id: int
-    user_id: int
-    username: str
-    text: str
-    updated_at: datetime.datetime
-
 class WholeReview(BaseModel):
     id: int
     user_id: int
@@ -37,7 +30,6 @@ class WholeReview(BaseModel):
     score: float
     text: str
     updated_at: datetime.datetime
-    comments: List[Comment] = []
 
 class OptionalReview(BaseModel):
     id: int
@@ -49,10 +41,22 @@ class OptionalReview(BaseModel):
 class GameOverview(BaseModel):
     game_id: int
     title: str
+    genre: str
     aggregate_rating: float
     total_playtime: int = 0
     reviews: List[WholeReview] = []
     optional_reviews: List[OptionalReview] = []
+
+class GameHistory(BaseModel):
+    user_id: int
+    game_id: int
+    time_played: float
+
+class GameHistoryResponse(BaseModel):
+    user_id: int
+    game_id: int
+    time_played: float
+    last_played: datetime.datetime
 
 
 #Returns most recent 20 games reviewed, so people can see whats been getting reviewed recently for inspiration
@@ -111,16 +115,81 @@ def get_reviews_for_games(search: str):
         print(rows)
         return rows
 
+@router.post("/history", response_model=GameHistoryResponse, status_code=status.HTTP_200_OK)
+def add_game_history(history: GameHistory):
+    with db.engine.begin() as connection:
+        
+        # Check if the game exists
+        game = connection.execute(
+            sqlalchemy.text(
+                """
+                SELECT id FROM games WHERE id = :game_id
+                """
+            ),
+            {"game_id": history.game_id}
+        ).fetchone()
+        
+        if not game:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Game with ID {history.game_id} not found"
+            )
+        
+        # Check if the user exists
+        user = connection.execute(
+            sqlalchemy.text(
+                """
+                SELECT id FROM users WHERE id = :user_id
+                """
+            ),
+            {"user_id": history.user_id}
+        ).fetchone()
+        
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"User with ID {history.user_id} not found"
+            )
+        
+        # Try to insert or update the history record
+        result = connection.execute(
+            sqlalchemy.text(
+                """
+                INSERT INTO history (user_id, game_id, time_played, last_played)
+                VALUES (:user_id, :game_id, :time_played, NOW())
+                ON CONFLICT (user_id, game_id) 
+                DO UPDATE SET 
+                    time_played = history.time_played + :time_played,
+                    last_played = NOW()
+                RETURNING user_id, game_id, time_played, last_played
+                """
+            ),
+            {
+                "user_id": history.user_id,
+                "game_id": history.game_id,
+                "time_played": history.time_played
+            }
+        ).fetchone()
+        
+        return GameHistoryResponse(
+            user_id=result.user_id,
+            game_id=result.game_id,
+            time_played=result.time_played,
+            last_played=result.last_played
+        )
 
 @router.get("/{game_id}/overview", response_model = GameOverview)
 def get_game_overview(game_id: int):
     with db.engine.begin() as connection:
+        connection.execute(sqlalchemy.text("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ"))
+        
         game = connection.execute(
             sqlalchemy.text(
                 """
                 SELECT id, game as title 
                 FROM games 
-                WHERE id = :game_id
+                JOIN genres genre ON games.genre_id = genre.id
+                WHERE games.id = :game_id
                 """
             ),
             {"game_id": game_id}
@@ -135,8 +204,8 @@ def get_game_overview(game_id: int):
             sqlalchemy.text(
                 """
                 SELECT id, user_id, username, score, text, updated_at
-                FROM reviews r
-                JOIN users u ON r.user_id = u.id
+                FROM reviews 
+                JOIN users ON reviews.user_id = users.id
                 WHERE game_id = :game_id AND published = TRUE
                 ORDER BY updated_at DESC
                 """
@@ -146,27 +215,6 @@ def get_game_overview(game_id: int):
 
         reviews = []
         for review in reviews_data:
-            comments_data = connection.execute(
-                sqlalchemy.text(
-                    """
-                    SELECT c.comment_id, c.user_id, u.username, c.text, c.updated_at
-                    FROM comments c
-                    JOIN users u ON c.user_id = u.id
-                    WHERE c.review_id = :review_id
-                    ORDER BY c.updated_at ASC
-                    """
-                ),
-                {"review_id": review.id}
-            ).fetchall()
-            comments = [
-                Comment(
-                    comment_id=comment.comment_id,
-                    user_id=comment.user_id,
-                    username=comment.username,
-                    text=comment.text,
-                    updated_at=comment.updated_at
-                ) for comment in comments_data
-            ]
             reviews.append(
                 WholeReview(
                     id=review.id,
@@ -175,7 +223,6 @@ def get_game_overview(game_id: int):
                     score=review.score,  
                     text=review.text,  
                     updated_at=review.updated_at, 
-                    comments=comments
                 )
             )
         optional_reviews_data = connection.execute(
@@ -219,6 +266,7 @@ def get_game_overview(game_id: int):
         return GameOverview(
             game_id=game.id,
             title=game.title,
+            genre=game.genre,
             aggregate_rating=round(aggregate_rating, 2),
             total_playtime=total_playtime,
             reviews=reviews,
