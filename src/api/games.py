@@ -60,7 +60,7 @@ class GameHistoryResponse(BaseModel):
 
 #Returns most recent 20 games reviewed, so people can see whats been getting reviewed recently for inspiration
 @router.get("/", response_model=List[Game])
-def get_recent_games():
+def get_recent_games(limit: int):
     with db.engine.begin() as connection:
         result = connection.execute(
             sqlalchemy.text(
@@ -70,9 +70,10 @@ def get_recent_games():
                 JOIN games ON games.id = reviews.game_id 
                 WHERE reviews.published = true
                 ORDER BY reviews.game_id, reviews.updated_at DESC
-                LIMIT 20
+                LIMIT :limit
                 """
-            )
+            ),
+            {"limit": limit}
         )
         rows = list(result.mappings())
         print(rows)
@@ -97,7 +98,7 @@ def search_games(search: str):
         return rows
 
 @router.get("/{game_id}",response_model=List[Review])
-def get_reviews_for_games(search: str):
+def get_reviews_for_games(search: str, limit: int):
     with db.engine.begin() as connection:
         result = connection.execute(
             sqlalchemy.text(
@@ -106,9 +107,10 @@ def get_reviews_for_games(search: str):
                 FROM games
                 JOIN reviews ON reviews.game_id = games.id
                 WHERE games.game ILIKE :search
+                LIMIT :limit
                 """
             ),
-            [{"search": f"%{search}%"}]
+            [{"search": f"%{search}%", "limit": limit}]
         )
         rows = list(result.mappings())
         print(rows)

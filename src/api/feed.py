@@ -26,7 +26,7 @@ class FeedItem(BaseModel):
 
 
 @router.get("/{user_id}", status_code=status.HTTP_200_OK, response_model=List[FeedItem])
-def get_feed(user_id: int):
+def get_feed(user_id: int, limit: int):
 
     with db.engine.begin() as connection:
         if not connection.execute(
@@ -46,11 +46,12 @@ def get_feed(user_id: int):
                     AND friends.user_added_id = reviews.user_id
                 )
                 AND NOW() - reviews.updated_at < INTERVAL '30 days'
-                LIMIT 10
+                LIMIT :limit
                 """
             ),
             {
                 "user_id": user_id,
+                "limit": limit
             },
         )
 

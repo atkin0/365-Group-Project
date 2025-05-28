@@ -138,7 +138,7 @@ def post_comment(review_id: int, user_id: int, comment: str):
         return PostCommentResponse(comment_id=comment_id)
 
 @router.get("/{review_id}/comments", status_code=status.HTTP_200_OK, response_model=List[Comment])
-def get_comments(review_id: int):
+def get_comments(review_id: int, limit: int):
     with db.engine.begin() as connection:
         if not connection.execute(
                 sqlalchemy.text("SELECT 1 FROM reviews where id = :id"),
@@ -152,10 +152,12 @@ def get_comments(review_id: int):
                 FROM comments
                 JOIN users on comments.user_id = users.id
                 WHERE review_id = :review_id
+                LIMIT :limit
                 """
             ),
             {
                 "review_id": review_id,
+                "limit": limit
             }
         ).fetchall()
 

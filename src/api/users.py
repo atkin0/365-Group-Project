@@ -199,7 +199,7 @@ def edit_settings(user_id: int, setting: Setting):
         )
         
 @router.get("/{user_id}/history", response_model= list[Reviews])
-def show_history(user_id: int):
+def show_history(user_id: int, limit: int):
     """
     Display a users history.
     """
@@ -216,9 +216,11 @@ def show_history(user_id: int):
                 SELECT *
                 FROM reviews
                 WHERE user_id = :user_id
+                ORDER BY updated_at DESC
+                LIMIT :limit
                 """
             ),
-            [{"user_id": user_id}]
+            [{"user_id": user_id, "limit": limit}]
         )
         for review in result:
             reviews_list.append(
