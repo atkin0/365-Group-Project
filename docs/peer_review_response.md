@@ -30,7 +30,8 @@ Anthony Huang Schema/API Design
   - added usernames
 - Most list endpoints don’t have a way to limit results. Adding limit and skip options would help.
 - ✅ Some routes that only get data (like search) use POST instead of GET.
-- There’s no clear error message format. It would be better to return errors in a standard way.
+- ✅ There’s no clear error message format. It would be better to return errors in a standard way.
+  - added error checking for existence
 - ✅ Some route names are repetitive, like /games/games/. These can be shortened.
 - ✅ Fields like text, description, and review_name are used in different places but mean similar things. Try to use the same names.
   - changed all instances of description to text, review_name means something else

@@ -1,6 +1,6 @@
 from typing import List
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, HTTPException
 from pydantic import BaseModel
 import sqlalchemy
 from src.api import auth
@@ -66,6 +66,16 @@ def add_friends(user_id: int, friend_id: int):
     Add a user as a friend.
     """
     with db.engine.begin() as connection:
+        if not connection.execute(
+                sqlalchemy.text("SELECT 1 FROM users where id = :id"),
+                {"id": user_id}).first():
+            raise HTTPException(status_code=404, detail="User doesn't exist")
+
+        if not connection.execute(
+                sqlalchemy.text("SELECT 1 FROM users where id = :id"),
+                {"id": friend_id}).first():
+            raise HTTPException(status_code=404, detail="Friend doesn't exist")
+
         friends = connection.execute(
             sqlalchemy.text(
                 """
@@ -85,6 +95,11 @@ def display_my_friended(user_id: int):
     """
     friends_list = []
     with db.engine.begin() as connection:
+        if not connection.execute(
+                sqlalchemy.text("SELECT 1 FROM users where id = :id"),
+                {"id": user_id}).first():
+            raise HTTPException(status_code=404, detail="User doesn't exist")
+
         results = connection.execute(
             sqlalchemy.text(
                 """
@@ -107,8 +122,14 @@ def display_friended_me(user_id: int):
     """
     Display a users list of friends.
     """
+
     friends_list = []
     with db.engine.begin() as connection:
+        if not connection.execute(
+                sqlalchemy.text("SELECT 1 FROM users where id = :id"),
+                {"id": user_id}).first():
+            raise HTTPException(status_code=404, detail="User doesn't exist")
+
         results = connection.execute(
             sqlalchemy.text(
                 """
@@ -161,6 +182,11 @@ def edit_settings(user_id: int, setting: Setting):
     Edit a users settings.
     """
     with db.engine.begin() as connection:
+        if not connection.execute(
+                sqlalchemy.text("SELECT 1 FROM users where id = :id"),
+                {"id": user_id}).first():
+            raise HTTPException(status_code=404, detail="User doesn't exist")
+
         connection.execute(
             sqlalchemy.text(
                 """
@@ -179,6 +205,11 @@ def show_history(user_id: int):
     """
     reviews_list = []
     with db.engine.begin() as connection:
+        if not connection.execute(
+                sqlalchemy.text("SELECT 1 FROM users where id = :id"),
+                {"id": user_id}).first():
+            raise HTTPException(status_code=404, detail="User doesn't exist")
+
         result = connection.execute(
             sqlalchemy.text(
                 """
@@ -209,6 +240,11 @@ def show_top(user_id: int):
     """
     reviews_list = []
     with db.engine.begin() as connection:
+        if not connection.execute(
+                sqlalchemy.text("SELECT 1 FROM users where id = :id"),
+                {"id": user_id}).first():
+            raise HTTPException(status_code=404, detail="User doesn't exist")
+
         result = connection.execute(
             sqlalchemy.text(
                 """

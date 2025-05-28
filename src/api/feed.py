@@ -1,6 +1,6 @@
 from typing import List
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, HTTPException
 import sqlalchemy
 from pydantic import BaseModel
 from src.api import auth
@@ -29,6 +29,10 @@ class FeedItem(BaseModel):
 def get_feed(user_id: int):
 
     with db.engine.begin() as connection:
+        if not connection.execute(
+                sqlalchemy.text("SELECT 1 FROM users where id = :id"),
+                {"id": user_id}).first():
+            raise HTTPException(status_code=404, detail="User doesn't exist")
         reviews = connection.execute(
             sqlalchemy.text(
                 """

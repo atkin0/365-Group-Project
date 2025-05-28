@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, HTTPException
 from pydantic import BaseModel
 import sqlalchemy
 from src.api import auth
@@ -49,6 +49,11 @@ def send_review(review: Reviews):
 @router.post("/{review_id}/optional", status_code=status.HTTP_204_NO_CONTENT)
 def optional_review(review_id: int, optional: OptionalReviews):
     with db.engine.begin() as connection:
+        if not connection.execute(
+                sqlalchemy.text("SELECT 1 FROM reviews where id = :id"),
+                {"id": review_id}).first():
+            raise HTTPException(status_code=404, detail="Review doesn't exist")
+
         result = connection.execute(
             sqlalchemy.text(
                 """
@@ -69,6 +74,11 @@ def optional_review(review_id: int, optional: OptionalReviews):
 @router.patch("/{review_id}/publish", status_code=status.HTTP_204_NO_CONTENT)
 def post_review(review_id: int):
     with db.engine.begin() as connection:
+        if not connection.execute(
+                sqlalchemy.text("SELECT 1 FROM reviews where id = :id"),
+                {"id": review_id}).first():
+            raise HTTPException(status_code=404, detail="Review doesn't exist")
+
         connection.execute(
             sqlalchemy.text(
                 """
@@ -84,6 +94,12 @@ def post_review(review_id: int):
 @router.patch("/{review_id}/edit", status_code=status.HTTP_204_NO_CONTENT)
 def patch_review(review_id: int, review: Reviews):
     with db.engine.begin() as connection:
+
+        if not connection.execute(
+                sqlalchemy.text("SELECT 1 FROM reviews where id = :id"),
+                {"id": review_id}).first():
+            raise HTTPException(status_code=404, detail="Review doesn't exist")
+
         connection.execute(
             sqlalchemy.text(
                 """
@@ -99,6 +115,11 @@ def patch_review(review_id: int, review: Reviews):
 @router.post("/{review_id}/comments", status_code=status.HTTP_200_OK, response_model=PostCommentResponse)
 def post_comment(review_id: int, user_id: int, comment: str):
     with db.engine.begin() as connection:
+        if not connection.execute(
+                sqlalchemy.text("SELECT 1 FROM reviews where id = :id"),
+                {"id": review_id}).first():
+            raise HTTPException(status_code=404, detail="Review doesn't exist")
+
         comment_id = connection.execute(
             sqlalchemy.text(
                 """
@@ -119,6 +140,11 @@ def post_comment(review_id: int, user_id: int, comment: str):
 @router.get("/{review_id}/comments", status_code=status.HTTP_200_OK, response_model=List[Comment])
 def get_comments(review_id: int):
     with db.engine.begin() as connection:
+        if not connection.execute(
+                sqlalchemy.text("SELECT 1 FROM reviews where id = :id"),
+                {"id": review_id}).first():
+            raise HTTPException(status_code=404, detail="Review doesn't exist")
+
         results = connection.execute(
             sqlalchemy.text(
                 """

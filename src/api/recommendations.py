@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, HTTPException
 from collections import defaultdict
 from pydantic import BaseModel
 import sqlalchemy
@@ -25,6 +25,11 @@ class GameRanked(BaseModel):
 def popular_recommendations(user_id: int):
 
     with db.engine.begin() as connection:
+        if not connection.execute(
+                sqlalchemy.text("SELECT 1 FROM users where id = :id"),
+                {"id": user_id}).first():
+            raise HTTPException(status_code=404, detail="User doesn't exist")
+
         genres_recent = connection.execute(
             sqlalchemy.text(
                 """
@@ -125,6 +130,11 @@ def get_recommended_games(user_id, games_list: List[GameRanked]):
     recommendations: List[Recommendation] = []
     with db.engine.begin() as connection:
         for game in games_list:
+            if not connection.execute(
+                    sqlalchemy.text("SELECT 1 FROM games where id = :id"),
+                    {"id": game.game_id}).first():
+                raise HTTPException(status_code=404, detail="Game doesn't exist")
+
             game_name = connection.execute(
                 sqlalchemy.text(
                     """
