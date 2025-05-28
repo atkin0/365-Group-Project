@@ -44,14 +44,14 @@ def get_feed(user_id: int):
             },
         ).fetchall()
 
-        for review in reviews:
-            feed.append(
-                FeedItem(
-                    game_title=review.game_title,
-                    username=review.username,
-                    score=review.score,
-                    description=review.description
-                )
+    for review in reviews:
+        feed.append(
+            FeedItem(
+                game_title=review.game_title,
+                username=review.username,
+                score=review.score,
+                description=review.description
             )
+        )
 
     return feed

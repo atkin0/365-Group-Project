@@ -1,51 +1,31 @@
 Anthony Huang Code Review
 - ✅ The route /admin/admin/delete is repeated. The second “admin” in the path isn’t needed.
-
 - ✅ The add_friends route is still using GET even though it sends data. This should be POST.
-
 - ✅ The get_recent_games route is a POST request, but it only gets data. It should be a GET.
-
 - ✅ The search_games route should also be a GET instead of POST.
-
 - ✅ The get_reviews_for_games route uses POST when it should be GET.
-
 - ✅ The path /games/games/ is confusing. Remove the extra “games” so it’s just /games/.
-
--  ✅ /user/{user_id}/history uses GET, but make sure it only needs the user_id(or username?)from the path and not a request body.
-
+- ✅ /user/{user_id}/history uses GET, but make sure it only needs the user_id(or username?)from the path and not a request body.
 - ✅ Same with /user/{user_id}/favorite. GET is fine as long as no body is used.
-
 - ✅ The edit and publish review routes are using POST, but they should use PATCH for updates.
-
 - ✅ The edit/optional route should probably use PATCH too instead of POST.
-
 - ✅ You can combine the optional review edit and create into one function that adds or updates depending on if it already exists.
-
 - ✅ Some routes like /reviews/{review_id}/comments could benefit from a GET version to view comments, not just POST.
 
 Anthony Huang Schema/API Design
 - ❌ The settings table uses both id and user_id as primary keys. That can cause problems, it should just use one.
     - id is supposed to be id for setting
 - ✅ The User model is used in routes where only user_id is needed. It would be easier to just pass the ID.
-
 - ❌ The friends table only tracks one-way friendships. If users are supposed to be real friends, this should be two-way.
     - its more like a follow system
-- It’s not clear if a review can have more than one optional review. The design could explain that better.
-
+- ... It’s not clear if a review can have more than one optional review. The design could explain that better.
 - ✅ There’s no endpoint to get the list of genres, even though each game has a genre ID. A /genres route would help.
-
 - ✅ Comments don’t return the commenter’s username. That makes it harder to display who said what.
-
 - Most list endpoints don’t have a way to limit results. Adding limit and skip options would help.
-
-- ✅ Some routes that only get data (like search) use POST instead of GET. 
-
+- ✅ Some routes that only get data (like search) use POST instead of GET.
 - There’s no clear error message format. It would be better to return errors in a standard way.
-
 - ✅ Some route names are repetitive, like /games/games/. These can be shortened.
-
 - Fields like text, description, and review_name are used in different places but mean similar things. Try to use the same names.
-
 - Some endpoints return raw lists of data. It might be better to wrap them in a response object for easier parsing on the frontend.
 
 Anna Grillo Code Review
@@ -58,7 +38,7 @@ Anna Grillo Code Review
   - Am finding recently reviewed games and limiting that to 10, not really being inconsistent. Limiting reviews by 3 is because a game can possibly display up to 20 reviews total, maybe too much.
 - ❌ can avoid this for loop " for game in games_list:" by grabbing info about the game as you pick it out from top_games and friend_games
   - I think it is ok. When i get it from the top_games and friend_games I will have to store all the review infos somewhere. Also it is not guranteed top_games and friend_games makes it to the recommendations. 
-- in general should avoid for loops in db calls
+- ✅ in general should avoid for loops in db calls
 - ✅ in users.py, it doesn't look like you have a need for User class, all you ever use from that is the user_id or user_id of the friend
 - ✅ admin delete returns false no matter what
 - ❌ games/search might through in error if it returns nothing from the query

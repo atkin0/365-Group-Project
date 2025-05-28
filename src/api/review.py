@@ -131,11 +131,11 @@ def get_comments(review_id: int):
             {
                 "review_id": review_id,
             }
-        )
+        ).fetchall()
 
-        comments: List[Comment] = []
+    comments: List[Comment] = []
 
-        for r in results:
-            comments.append(Comment(username=r.username, text=r.text))
+    for r in results:
+        comments.append(Comment(username=r.username, text=r.text))
 
-        return comments
+    return comments

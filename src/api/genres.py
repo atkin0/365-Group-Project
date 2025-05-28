@@ -21,8 +21,6 @@ class Genre(BaseModel):
     genre: str
 
 
-
-
 @router.post("/", response_model=GenreCreateResponse, status_code=status.HTTP_200_OK)
 def new_genre(genreCreate: GenreCreate):
     with db.engine.begin() as connection:
@@ -51,10 +49,10 @@ def all_genres():
                 SELECT genre from genres
                 """
             )
-        )
+        ).fetchall()
 
-        genres = []
-        for r in results:
-            genres.append(Genre(genre=r.genre))
+    genres = []
+    for r in results:
+        genres.append(Genre(genre=r.genre))
 
-        return genres
+    return genres

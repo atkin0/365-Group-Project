@@ -220,15 +220,15 @@ def show_top(user_id: int):
                 """
             ),
             [{"user_id": user_id}]
-        )
-        for review in result:
-            reviews_list.append(
-                Reviews(
-                    user_id= user_id,
-                    game_id=review.game_id, 
-                    score = review.score, 
-                    text=review.text
-                )
+        ).fetchall()
+
+    for review in result:
+        reviews_list.append(
+            Reviews(
+                user_id= user_id,
+                game_id=review.game_id,
+                score = review.score,
+                text=review.text
             )
-        
+        )
     return reviews_list
