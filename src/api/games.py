@@ -41,7 +41,6 @@ class OptionalReview(BaseModel):
 class GameOverview(BaseModel):
     game_id: int
     title: str
-    genre: str
     aggregate_rating: float
     total_playtime: int = 0
     reviews: List[WholeReview] = []
@@ -186,9 +185,8 @@ def get_game_overview(game_id: int):
         game = connection.execute(
             sqlalchemy.text(
                 """
-                SELECT id, game as title, genre.genre
+                SELECT id, game as title
                 FROM games 
-                JOIN genres genre ON games.genre_id = genre.id
                 WHERE games.id = :game_id
                 """
             ),
@@ -266,7 +264,6 @@ def get_game_overview(game_id: int):
         return GameOverview(
             game_id=game.id,
             title=game.title,
-            genre=game.genre,
             aggregate_rating=round(aggregate_rating, 2),
             total_playtime=total_playtime,
             reviews=reviews,

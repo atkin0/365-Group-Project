@@ -215,7 +215,6 @@ The API calls are made in this sequence when making a review:
 {
     "game_id": "int",
     "title": "string",
-    "genre":"string",
     "aggregate_rating": "float",
     "total_playtime": "int",
     "reviews": [
