@@ -27,7 +27,6 @@ class FeedItem(BaseModel):
 
 @router.get("/{user_id}", status_code=status.HTTP_200_OK, response_model=List[FeedItem])
 def get_feed(user_id: int):
-    feed = []
 
     with db.engine.begin() as connection:
         reviews = connection.execute(
@@ -51,6 +50,7 @@ def get_feed(user_id: int):
             },
         )
 
+        feed = []
         for review in reviews:
             optional_reviews = connection.execute(
                 sqlalchemy.text(
@@ -76,5 +76,4 @@ def get_feed(user_id: int):
                     optional_reviews=optional_reviews
                 )
             )
-
-    return feed
+        return feed
