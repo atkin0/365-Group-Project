@@ -55,3 +55,30 @@ The aggregate rating displayed to the user is no longer accurate because a new r
 To prevent these problems the solution is to use a Repeatable Read isolation level.
 This Prevents Non-repeatable Reads because it Ensures that if the transaction reads the same row twice, it gets the same value each time, maintaining consistency in the game information throughout the transaction. This also Prevents Phantom Reads because if the transaction runs a query twice, it sees the same set of rows each time, providing consistent aggregate calculations and review counts.
 This isolation level ensures that users get a consistent view of a game's data throughout the entire API call, even if other transactions are modifying game
+
+
+### 3: Phantom Reads in Recently Reviewed Games
+
+When a user looks at the most recently reviewed games while new games are being reviewed.
+
+#### Sequence Diagram
+```
+Transaction A (get_recent_games)   |   Transaction B (add_review)
+-----------------------------------|---------------------------
+Begin                              |
+Get list of new games (20 long)    |
+Read through review of one game    |   Begin
+                                   |   Insert new review with new game that is
+                                   |      not in the original list of recent games
+                                   |   Commit
+Return to list of recent games     |
+Returns recent games with          |
+  different games                  |
+  (one game lost, one game gained) |
+Commit                             |
+```
+
+The recent games displayed to the user is no longer accurate because a new review with a new game, not in the original 20 recent games, was added during the transaction. This can mislead users about what games are being reviewed currently. Additionally, if lots of different people are adding games at the same time, then the recent games tab would go haywire, and constantly be cycling through different games.
+
+### Recommended Isolation Level
+To prevent the Phantom Reads, the solution is to use a Serializable isolation level, because if a user is grabbing the most recent 20 games that have been reviewed, there will not be changes to the database until after someone is done with the recent games. This is good, because it means that the database will not update like crazy if there are lots of people using it. If this causes issues however, with the database not updating for long periods of time, it is possible that we can use a repeatable read isolation level with careful logic that dictates when and how a game can make it into the most recent reviewed games list. This would allow the same results to be returned with the same transaction. The ideal reccommendation would be to use a Serializable isolation level, however, depending on how testing goes, repeatable reads may be more practical.
