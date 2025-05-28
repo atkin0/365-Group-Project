@@ -201,9 +201,9 @@ def get_game_overview(game_id: int):
         reviews_data = connection.execute(
             sqlalchemy.text(
                 """
-                SELECT id, user_id, username, score, text, updated_at
-                FROM reviews 
-                JOIN users ON reviews.user_id = users.id
+                SELECT r.id, r.user_id, username, score, text, r.updated_at
+                FROM reviews r
+                JOIN users ON r.user_id = users.id
                 WHERE game_id = :game_id AND published = TRUE
                 ORDER BY updated_at DESC
                 """
