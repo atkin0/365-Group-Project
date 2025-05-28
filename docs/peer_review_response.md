@@ -6,31 +6,41 @@ Anthony Huang Code Review
 - ✅ The get_reviews_for_games route uses POST when it should be GET.
 - ✅ The path /games/games/ is confusing. Remove the extra “games” so it’s just /games/.
 - ✅ /user/{user_id}/history uses GET, but make sure it only needs the user_id(or username?)from the path and not a request body.
+  - deleted request body
 - ✅ Same with /user/{user_id}/favorite. GET is fine as long as no body is used.
+  - deleted request body
 - ✅ The edit and publish review routes are using POST, but they should use PATCH for updates.
 - ✅ The edit/optional route should probably use PATCH too instead of POST.
 - ✅ You can combine the optional review edit and create into one function that adds or updates depending on if it already exists.
+  - did just as recommended
 - ✅ Some routes like /reviews/{review_id}/comments could benefit from a GET version to view comments, not just POST.
+  - added get comments
 
 Anthony Huang Schema/API Design
 - ❌ The settings table uses both id and user_id as primary keys. That can cause problems, it should just use one.
     - id is supposed to be id for setting
 - ✅ The User model is used in routes where only user_id is needed. It would be easier to just pass the ID.
+  - removed User model
 - ❌ The friends table only tracks one-way friendships. If users are supposed to be real friends, this should be two-way.
     - its more like a follow system
 - ... It’s not clear if a review can have more than one optional review. The design could explain that better.
 - ✅ There’s no endpoint to get the list of genres, even though each game has a genre ID. A /genres route would help.
+  - added get_genres and add genre
 - ✅ Comments don’t return the commenter’s username. That makes it harder to display who said what.
+  - added usernames
 - Most list endpoints don’t have a way to limit results. Adding limit and skip options would help.
 - ✅ Some routes that only get data (like search) use POST instead of GET.
 - There’s no clear error message format. It would be better to return errors in a standard way.
 - ✅ Some route names are repetitive, like /games/games/. These can be shortened.
-- Fields like text, description, and review_name are used in different places but mean similar things. Try to use the same names.
-- Some endpoints return raw lists of data. It might be better to wrap them in a response object for easier parsing on the frontend.
+- ✅ Fields like text, description, and review_name are used in different places but mean similar things. Try to use the same names.
+  - changed all instances of description to text, review_name means something else
+- ✅ Some endpoints return raw lists of data. It might be better to wrap them in a response object for easier parsing on the frontend.
+  - created response objects
 
 Anna Grillo Code Review
 - ✅ add comments to recomendation algorithm - about how decisions are being made/why you chose 1.2 and 1.1 as the starting values
 - ✅ popular_recomendations, could do less work in the api call, make a helper function
+  - made a get game info function after getting games recommended
 - ✅ in display friends, can add another join on users to avoid the for loop where you get the user's id
 - ✅ "ORDER BY last_played" in popular_recomendations should possibly be desc, instead of getting the first 10 games they played
 - ✅ "ORDER BY time_played" in popular_recomendations should possibly be desc, instead of getting the first 10 games they played
@@ -39,7 +49,9 @@ Anna Grillo Code Review
 - ❌ can avoid this for loop " for game in games_list:" by grabbing info about the game as you pick it out from top_games and friend_games
   - I think it is ok. When i get it from the top_games and friend_games I will have to store all the review infos somewhere. Also it is not guranteed top_games and friend_games makes it to the recommendations. 
 - ✅ in general should avoid for loops in db calls
+  - put loops outside of db calls when possible
 - ✅ in users.py, it doesn't look like you have a need for User class, all you ever use from that is the user_id or user_id of the friend
+  - deleted User
 - ✅ admin delete returns false no matter what
 - ❌ games/search might through in error if it returns nothing from the query
   - it will return an empty list, so it should be fine
@@ -47,10 +59,12 @@ Anna Grillo Code Review
 
 Anna Grillo Schema/API Design
 - ✅ There should be a way for users to see who has added them that they are not friends with yet, currently you only have display list of friends
+  - added get people that added user function
 - maybe display optional reviews in the feed or in history, currently no way to see those reviews
 - should add more information about the game into the games table, ex. multiplayer, platform (console or pc or both), version
 - not sure what “value” in the settings table is used for, should make this more clear if it’s to tell if a user is private or public - but not sure what that even changes for the user
 - ✅ no GET endpoints should have a request body, fix that to be using the path parameters
+  - removed request bodies
 - /feed/ returns a 500 internal server error
 - ❌ id is not set to the primary key in users
   - it is

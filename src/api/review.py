@@ -15,7 +15,7 @@ class Reviews(BaseModel):
     user_id: int
     game_id: int
     score: int
-    description: str
+    text: str
 
 class OptionalReviews(BaseModel):
     aspect_to_review: str
@@ -42,7 +42,7 @@ def send_review(review: Reviews):
                 RETURNING id
                 """
             ),
-            [{"user_id": review.user_id, "score": review.score, "text": review.description, "game_id": review.game_id}],
+            [{"user_id": review.user_id, "score": review.score, "text": review.text, "game_id": review.game_id}],
         ).scalar_one()
     return ReviewCreateResponse(review_id=result)
 
@@ -92,7 +92,7 @@ def patch_review(review_id: int, review: Reviews):
                 WHERE id = :review_id
                 """
             ),
-            {"review_id": review_id, "user_id": review.user_id, "score": review.score, "text": review.description, "game_id": review.game_id}
+            {"review_id": review_id, "user_id": review.user_id, "score": review.score, "text": review.text, "game_id": review.game_id}
         )
     pass
 
