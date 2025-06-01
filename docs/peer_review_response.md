@@ -64,7 +64,8 @@ Anna Grillo Schema/API Design
   - added get people that added user function
 - ✅ maybe display optional reviews in the feed or in history, currently no way to see those reviews
   - included in feed
-- ... should add more information about the game into the games table, ex. multiplayer, platform (console or pc or both), version
+- ✅ should add more information about the game into the games table, ex. multiplayer, platform (console or pc or both), version
+  - added multiplayer and platform, i think adding version is not that necessary
 - ✅ not sure what “value” in the settings table is used for, should make this more clear if it’s to tell if a user is private or public - but not sure what that even changes for the user
   - yeah we don't use it, we will remove it
 - ✅ no GET endpoints should have a request body, fix that to be using the path parameters
