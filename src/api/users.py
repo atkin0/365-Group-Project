@@ -91,7 +91,7 @@ def add_friends(user_id: int, friend_id: int):
         
 
 
-@router.get("/{user_id}/friends", response_model= List[str])
+@router.get("/{user_id}/my_friends", response_model= List[str])
 def display_my_friended(user_id: int):
     """
     Display a users list of friends.
@@ -120,7 +120,7 @@ def display_my_friended(user_id: int):
 
     return friends_list
 
-@router.get("/{user_id}/friends", response_model= List[str])
+@router.get("/{user_id}/friended_me", response_model= List[str])
 def display_friended_me(user_id: int):
     """
     Display a users list of friends.
