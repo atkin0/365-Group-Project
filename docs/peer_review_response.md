@@ -23,7 +23,8 @@ Anthony Huang Schema/API Design
   - removed User model
 - ❌ The friends table only tracks one-way friendships. If users are supposed to be real friends, this should be two-way.
     - its more like a follow system
-- ... It’s not clear if a review can have more than one optional review. The design could explain that better.
+- ✅ It’s not clear if a review can have more than one optional review. The design could explain that better.
+  - added comments to explain
 - ✅ There’s no endpoint to get the list of genres, even though each game has a genre ID. A /genres route would help.
   - added get_genres and add genre
 - ✅ Comments don’t return the commenter’s username. That makes it harder to display who said what.
@@ -64,9 +65,10 @@ Anna Grillo Schema/API Design
   - added get people that added user function
 - ✅ maybe display optional reviews in the feed or in history, currently no way to see those reviews
   - included in feed
-- ... should add more information about the game into the games table, ex. multiplayer, platform (console or pc or both), version
+- ✅ should add more information about the game into the games table, ex. multiplayer, platform (console or pc or both), version
+  - added multiplayer and platform, i think adding version is not that necessary
 - ✅ not sure what “value” in the settings table is used for, should make this more clear if it’s to tell if a user is private or public - but not sure what that even changes for the user
-  - yeah we don't use it, we will remove it
+  - yeah we don't use it, we will probably remove it
 - ✅ no GET endpoints should have a request body, fix that to be using the path parameters
   - removed request bodies
 - ✅ /feed/ returns a 500 internal server error

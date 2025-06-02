@@ -37,6 +37,8 @@ def create_user(new_user: CreateUser):
     """
     Creates a new User
     """
+
+    print(f"NEW USER: {new_user}")
     with db.engine.begin() as connection:
         result = connection.execute(
             sqlalchemy.text(

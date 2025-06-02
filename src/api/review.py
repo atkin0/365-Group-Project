@@ -48,6 +48,10 @@ def send_review(review: Reviews):
 
 @router.post("/{review_id}/optional", status_code=status.HTTP_204_NO_CONTENT)
 def optional_review(review_id: int, optional: OptionalReviews):
+    """
+    Optional reviews for reviewing different aspects of a game. Each review can have multiple optional reviews extending.
+    """
+
     with db.engine.begin() as connection:
         if not connection.execute(
                 sqlalchemy.text("SELECT 1 FROM reviews where id = :id"),

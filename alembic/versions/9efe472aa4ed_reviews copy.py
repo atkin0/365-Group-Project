@@ -57,6 +57,8 @@ def upgrade() -> None:
         sa.Column("id", sa.Integer, primary_key=True),
         sa.Column("genre", sa.String, nullable=False),
     )
+
+    #Optional reviews for reviewing different aspects of a game. Each review can have multiple optional reviews extending.
     op.create_table(
         "optional_reviews",
         sa.Column("id", sa.Integer, primary_key=True),
