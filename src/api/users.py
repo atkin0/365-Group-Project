@@ -51,15 +51,6 @@ def create_user(new_user: CreateUser):
             ),
             {"username": new_user.username, "privacy": new_user.private},
         ).scalar_one()
-        connection.execute(
-            sqlalchemy.text(
-                """
-                INSERT INTO settings (user_id, name, value)
-                VALUES (:user_id, 'private', :private_value)
-                """
-            ),
-            {"user_id": result, "username": new_user.username, "private_value": new_user.private},
-        )
 
     return UserCreateResponse(user_id=result)
 
