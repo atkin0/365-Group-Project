@@ -18,45 +18,37 @@ The API calls are made in this sequence when making a review:
 
 **Request**:
 ```json
-[
-	{
-		"user_id": "int",
-		"user_name": "string",
-		"game_name": "string",
-		"required_rating": "int",
-		"description_of_game": "string"
-	}
-]
+{
+    "user_id": "int",
+    "username": "string",
+    "game_name": "string",
+    "required_rating": "int",
+    "description": "string"
+}
 ```
 **Response**:
 ```json
-[
-	{
-		"review_id": "int"
-	}
-]
+{
+    "review_id": "int"
+}
 ```
 
 ### 1.2: `/reviews/{review_id}/optional` (PUT)  
-**Description**: Creates an additional optional review for parts of the game that they want to review. For example if someone was reviewing “Red Dead Redemption II” and wanted a separate rating for just the characters or the story, they could add one in.
+**Description**: Creates an additional optional review for parts of the game that they want to review. For example if someone was reviewing "Red Dead Redemption II" and wanted a separate rating for just the characters or the story, they could add one in.
 
 **Request**:
 ```json
-[
-	{
-	  "aspect_to_review": "string",
-	  "optional_rating": "int"
-	}
-]
+{
+    "aspect_to_review": "string",
+    "optional_rating": "int"
+}
 ```
 
 **Response**:
 ```json
-[
-	{
-		"success": "boolean"
-	}
-]
+{
+    "success": "boolean"
+}
 ```
 
 ### 1.3: `/reviews/{review_id}/publish` (POST)  
@@ -64,20 +56,16 @@ The API calls are made in this sequence when making a review:
 
 **Request**:  
 ```json  
-[
-    {
-        "review_id": "int"
-    }
-]
+{
+    "review_id": "int"
+}
 ```
 
 **Response**:  
 ```json  
-[
-    {
-        "success": "boolean"
-    }
-]
+{
+    "success": "boolean"
+}
 ```
 
 ## 2. Patching a Review
@@ -92,22 +80,18 @@ The API calls are made in this sequence when making a review:
 
 **Request**:  
 ```json
-[
-    {
-        "review_id": "int",
-        "change_required_rating": "int",
-        "change_description_of_game": "string"
-    }
-]
+{
+    "review_id": "int",
+    "required_rating": "int",
+    "description": "string"
+}
 ```
 
 **Response**:  
 ```json
-[
-    {
-        "success": "boolean"
-    }
-]
+{
+    "success": "boolean"
+}
 ```
 
 ### 2.2: `/reviews/{review_id}/optional` (PUT)  
@@ -115,21 +99,17 @@ The API calls are made in this sequence when making a review:
 
 **Request**:  
 ```json  
-[
-    {
-        "change_aspect_to_review": "string",
-        "change_optional_rating": "int"
-    }
-]
+{
+    "aspect_to_review": "string",
+    "optional_rating": "int"
+}
 ```
 
 **Response**:  
 ```json  
-[
-    {
-        "success": "boolean"
-    }
-]
+{
+    "success": "boolean"
+}
 ```
 
 ### 2.3: `/reviews/{review_id}/publish` (PATCH)  
@@ -137,19 +117,15 @@ The API calls are made in this sequence when making a review:
 
 **Request**:  
 ```json  
-[
-    {
-        "review_id": "int"
-    }
-]
+{
+    "review_id": "int"
+}
 ```
 **Response**:  
 ```json  
-[
-    {
-        "success": "boolean"
-    }
-]
+{
+    "success": "boolean"
+}
 ```
 
 ## 3. View List of Games 
@@ -158,36 +134,30 @@ The API calls are made in this sequence when making a review:
 
 **Response**:  
 ```json  
-[
-    {
-        "game_id": "int",
-        "game_name": "string",
-        "review_num": "int"
-    }
-]
+{
+    "game_id": "int",
+    "game_name": "string",
+    "review_num": "int"
+}
 ```
 ### 3.2: `/games/search` (GET)  
 **Description**: Searches for games based on the name or other parameters.
 
 **Parameter**:  
 ```json  
-[
-    {
-        "game_name": "string (Optional)",
-        "genre": "string (Optional)",
-        "sort_by": "string"
-    }
-]
+{
+    "game_name": "string (Optional)",
+    "genre": "string (Optional)",
+    "sort_by": "string"
+}
 ```
 
 **Response**:  
 ```json  
-[
-    {
-        "game_id": "int",
-        "game_name": "string"
-    }
-]
+{
+    "game_id": "int",
+    "game_name": "string"
+}
 ```
 
 ### 3.3: `/games/{game_id}` (GET)  
@@ -195,17 +165,15 @@ The API calls are made in this sequence when making a review:
 
 **Response**:  
 ```json  
-[
-    {
-        "game_name": "string",
-        "game_genre": "string",
-        "game_description": "string",
-        "review_ids": "int",
-        "review_name": "string",
-        "review_rating": "int",
-        "review_description": "string"
-    }
-]
+{
+    "game_name": "string",
+    "game_genre": "string",
+    "game_description": "string",
+    "review_ids": "int",
+    "review_name": "string",
+    "review_rating": "int",
+    "review_description": "string"
+}
 ```
 ### 3.4: `/games/{game_id}/overview` (GET)
 **Description**: Retrieves comprehensive information about a specific game including reviews, comments, optional reviews, and aggregate statistics.
@@ -245,12 +213,10 @@ The API calls are made in this sequence when making a review:
 
 **Response**:  
 ```json  
-[
-    {
-        "user_id": "int",
-        "user_name": "string"
-    }
-]
+{
+    "user_id": "int",
+    "username": "string"
+}
 ```
 
 ### 4.2: `/users/{user_id}/settings` (GET)  
@@ -258,12 +224,10 @@ The API calls are made in this sequence when making a review:
 
 **Response**:  
 ```json  
-[
-    {
-        "setting_id": "int",
-        "setting_value": "int"
-    }
-]
+{
+    "setting_id": "int",
+    "setting_value": "int"
+}
 ```
 
 ### 4.3: `/users/{user_id}/settings/edit` (PATCH)  
@@ -271,70 +235,44 @@ The API calls are made in this sequence when making a review:
 
 **Request**:  
 ```json  
-[
-    {
-        "setting_id": "int",
-        "setting_name": "string",
-        "setting_value": "int"
-    }
-]
+{
+    "setting_id": "int",
+    "setting_name": "string",
+    "setting_value": "int"
+}
 ```
 
 **Response**:  
 ```json  
-[
-    {
-        "success": "boolean"
-    }
-]
+{
+    "success": "boolean"
+}
 ```
 
 ### 4.4: `/users/{user_id}/history` (GET)  
 **Description**: Let you see a specific user's review history and their top-rated games.
 
-**Request**:  
-```json  
-[
-    {
-        "user_id": "int"
-    }
-]
-```
-
 **Response**:  
 ```json  
-[
-    {
-        "review_id": "int",
-        "game_reviewing": "string",
-        "review_rating": "int",
-        "review_description": "string"
-    }
-]
+{
+    "review_id": "int",
+    "game_name": "string",
+    "review_rating": "int",
+    "review_description": "string"
+}
 ```
 
 ### 4.5: `/users/{user_id}/favorite` (GET)  
 **Description**: Displays a user's 5 favorite games
 
-**Request**:  
-```json  
-[
-    {
-        "user_id": "int"
-    }
-]
-```
-
 **Response**:  
 ```json  
-[
-    {
-        "review_id": "int",  
-        "game_reviewing": "string",
-        "review_rating": "int",
-        "review_description": "string"
-    }
-]
+{
+    "review_id": "int",  
+    "game_name": "string",
+    "review_rating": "int",
+    "review_description": "string"
+}
 ```
 
 ## 5. View Feed
@@ -343,14 +281,12 @@ The API calls are made in this sequence when making a review:
 
 **Response**:  
 ```json  
-[
-    {
-        "title_of_game": "string",
-        "friend_name": "string",
-        "friend_rating": "int",
-        "friend_description_of_game": "string"
-    }
-]
+{
+    "game_title": "string",
+    "username": "string",
+    "score": "int",
+    "description": "string"
+}
 ```
 
 ## 6. Admin Functions
@@ -359,81 +295,59 @@ The API calls are made in this sequence when making a review:
 
 **Request**:  
 ```json  
-[
-    {
-        "review_id": "int"
-    }
-]
+{
+    "review_id": "int"
+}
 ```
 **Response**:  
 ```json  
-[
-    {
-        "success": "boolean"
-    }
-]
+{
+    "success": "boolean"
+}
 ```
 
 ## 8. Comment On Review
 ### 8.1: `/comments/` (POST)  
-**Description**: Creates a new comment for a user to post on someone else’s review.
+**Description**: Creates a new comment for a user to post on someone else's review.
 
 **Request**:  
 ```json  
-[
-    {
-        "review_id": "int",
-        "comment_of_review": "string"
-    }
-]
+{
+    "review_id": "int",
+    "comment_text": "string"
+}
 ```
 **Response**:  
 ```json  
-[
-    {
-        "comment_id": "int"
-    }
-]
+{
+    "comment_id": "int"
+}
 ```
 ### 8.2: `/comments/{comment_id}/publish` (POST)  
-**Description**: Publishes comment to someone else’s review
+**Description**: Publishes comment to someone else's review
 
 **Request**:  
 ```json  
-[
-    {
-        "review_id": "int"
-    }
-]
+{
+    "review_id": "int"
+}
 ```
 
 **Response**:  
 ```json  
-[
-    {
-        "success": "boolean"
-    }
-]
+{
+    "success": "boolean"
+}
 ```
 ## 9. Recommendations (Complex Endpoint)
 ### 9.1: `/recommendations/{user_id}` (GET)  
 **Description**: Gets recommended games based on user historical genres, recently played genres, overall top recent games, and friend's top recent games.
 
-**Request**:  
-```json  
-[
-    {
-        "user_id": "int",
-    }
-]
-```
 **Response**:  
 ```json  
-[
-    {
-        "game_name": "string",
-        "score": "float",
-        "reviews": "string[]"
-    }
-]
+{
+    "game_name": "string",
+    "score": "float",
+    "reviews": "string[]"
+}
 ```

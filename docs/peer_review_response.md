@@ -75,42 +75,60 @@
 - ❌ id is not set to the primary key in users
   - it is
 
-## Hudson Code Review
+### Hudson Code Review
+
 - ✅ There is a bug in users.py at the create_user endpoint. No matter what, it returns a 500 server error because your id column in settings is not set up to be the primary key and increment automatically.
-  - fixed settings table
+- id is supposed to be id for setting
 - ✅ Create_user is defaulting "private" as the name for each user rather than using new_user.username, which you collect as the parameter.
-  - Updated parameter name to use username instead of hardcoded 'private'
+- Updated parameter name to use username instead of hardcoded 'private'
 - ✅ Get_reviews_for_games function should be a GET, not a POST
-  - Changed to GET method
+- Changed to GET method
 - ✅ Search_games should be GET as well
-  - Changed to GET method
+- Changed to GET method
 - ✅ And get_recent_games
-  - Changed to GET method
+- Changed to GET method
 - ✅ You can take the /games/ out of all the endpoints, as it causes the name to be duplicated
-  - Fixed
+- Fixed
 - ✅ I wasn't able to get your get_recent_games function to return anything
-  - Fixed parameter passing and query implementation
+- Fixed parameter passing and query implementation
 - ✅ Same thing with get_reviews_for_games.
-  - Added proper parameter handling and fixed query logic
+- Added proper parameter handling and fixed query logic
 - ✅ Add_friends should be POST not GET\
-  - Changed to POST
+- Changed to POST
 - ✅ Post_comment returns a server error as it is trying to return the newly created id, however, there is no id column.
-  - Changed RETURNING clause to use correct column name (comment_id)
+- Changed RETURNING clause to use correct column name (comment_id)
 - ✅ Get_feed returns a server error as it is selecting games.name instead of games.game which is what is used in your table
-  - Updated column reference to match database schema
+- Updated column reference to match database schema
 - ✅ The delete_post function throws an error because it has two DELETE statements under the same connection.execute.
-  - Split into separate execute calls for each DELETE statement
+- Split into separate execute calls for each DELETE statement
 - ✅ The delete_post function will not work as intended as it blindly tries to delete the same review id from both reviews and optional_reviews. This is problematic as the reviews are most likely different and deleting both seems like an unintended side effect of deleting one.
-  - Added existence check before deletion and proper cascading delete logic
+- Added existence check before deletion and proper cascading delete logic
 - ✅ The delete_post function will only return success upon rowcount being 0
-  - Fixed success condition to properly report when rows were deleted
+- Fixed success condition to properly report when rows were deleted
 - ✅ Delete the /admin from the delete_post endpoint
-  - Fixed
+- Fixed
 - ✅ The add_friends function returned "TypeError: Failed to execute 'fetch' on 'Window': Request with GET/HEAD method cannot have body."
-  - removed request bodies from GET methods
+- removed request bodies from GET methods
 - ✅ I got the same error for display_friends
-  - removed request bodies from GET methods
+- removed request bodies from GET methods
 - ✅ And show_history
-  - removed request bodies from GET methods
+- removed request bodies from GET methods
 - ✅ And show_top
-  - removed request bodies from GET methods
+- removed request bodies from GET methods
+
+### Hudson Schema/API Comments
+- ✅ Get rid of top-level arrays in the request and response payloads. So instead of [ { "review_id": 123 } ], just do { "review_id": 123 }.
+- Removed arrays when useless
+- ✅ Remove quotes from numbers and booleans
+- Modified all JSON responses to properly format numbers and booleans without quotes
+- ✅Don't bounce around between snake_case and camelCase, just pick one
+- Standardized all naming to use snake_case throughout the API for consistency
+-❌I would change the word optional in the optional_reviews to be something else, like aspects or something. It is a little confusing - when first looking at the code and layout. Switching the wording will make its function less ambiguous.
+- It is called optional review because it is something that users can add to the review if they want
+- ✅Put the search and filter params in the query string, not the GET body
+- Moved all search and filter parameters to query strings for GET requests
+- Move delete_post from admin to posts
+- ❌We want that to be so a admin can delete posts that aren't suitable
+- ✅Include constraints for things like ratings and comment length
+Return location on creation calls
+- Added validation constraints - ratings must be between 1-10 and comments have a maximum length of 500 characters

@@ -22,7 +22,7 @@ class Genre(BaseModel):
 
 
 @router.post("/", response_model=GenreCreateResponse, status_code=status.HTTP_200_OK)
-def new_genre(genreCreate: GenreCreate):
+def new_genre(genre_create: GenreCreate):
     with db.engine.begin() as connection:
         genre_id = connection.execute(
             sqlalchemy.text(
@@ -34,7 +34,7 @@ def new_genre(genreCreate: GenreCreate):
                 RETURNING id
                 """
             ),
-            {"genre": genreCreate.genre}
+            {"genre": genre_create.genre}
         ).scalar_one()
 
         return GenreCreateResponse(genre_id=genre_id)

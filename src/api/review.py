@@ -1,5 +1,5 @@
-from fastapi import APIRouter, Depends, status, HTTPException
-from pydantic import BaseModel
+from fastapi import APIRouter, Depends, status, HTTPException, Query
+from pydantic import BaseModel, Field, constr
 import sqlalchemy
 from src.api import auth
 from src import database as db
@@ -14,12 +14,12 @@ router = APIRouter(
 class Reviews(BaseModel):
     user_id: int
     game_id: int
-    score: int
-    text: str
+    score: int = Field(..., ge=1, le=10, description="Rating must be between 1 and 10")
+    text: constr(max_length=500) = Field(..., description="Review text limited to 500 characters")
 
 class OptionalReviews(BaseModel):
     aspect_to_review: str
-    optional_rating: int
+    optional_rating: int = Field(..., ge=1, le=10, description="Rating must be between 1 and 10")
 
 class ReviewCreateResponse(BaseModel):
     review_id: int
@@ -42,7 +42,7 @@ def send_review(review: Reviews):
                 RETURNING id
                 """
             ),
-            [{"user_id": review.user_id, "score": review.score, "text": review.text, "game_id": review.game_id}],
+            {"user_id": review.user_id, "score": review.score, "text": review.text, "game_id": review.game_id},
         ).scalar_one()
     return ReviewCreateResponse(review_id=result)
 
@@ -69,7 +69,7 @@ def optional_review(review_id: int, optional: OptionalReviews):
                 RETURNING id
                 """
             ),
-            [{"review_name": optional.aspect_to_review, "optional_rating": optional.optional_rating, "review_id": review_id}],
+            {"review_name": optional.aspect_to_review, "optional_rating": optional.optional_rating, "review_id": review_id},
         ).scalar_one()
 
     return ReviewCreateResponse(review_id=result)
@@ -117,7 +117,11 @@ def patch_review(review_id: int, review: Reviews):
     pass
 
 @router.post("/{review_id}/comments", status_code=status.HTTP_200_OK, response_model=PostCommentResponse)
-def post_comment(review_id: int, user_id: int, comment: str):
+def post_comment(
+    review_id: int, 
+    user_id: int, 
+    comment: constr(max_length=500) = Field(..., description="Comment text limited to 500 characters")
+):
     with db.engine.begin() as connection:
         if not connection.execute(
                 sqlalchemy.text("SELECT 1 FROM reviews where id = :id"),
@@ -142,7 +146,10 @@ def post_comment(review_id: int, user_id: int, comment: str):
         return PostCommentResponse(comment_id=result)
 
 @router.get("/{review_id}/comments", status_code=status.HTTP_200_OK, response_model=List[Comment])
-def get_comments(review_id: int, limit: int):
+def get_comments(
+    review_id: int, 
+    limit: int = Query(10, description="Maximum number of comments to return")
+):
     with db.engine.begin() as connection:
         if not connection.execute(
                 sqlalchemy.text("SELECT 1 FROM reviews where id = :id"),
