@@ -1,4 +1,4 @@
-## Anthony Huang Code Review
+### Anthony Huang Code Review
 - ✅ The route /admin/admin/delete is repeated. The second “admin” in the path isn’t needed.
 - ✅ The add_friends route is still using GET even though it sends data. This should be POST.
 - ✅ The get_recent_games route is a POST request, but it only gets data. It should be a GET.
@@ -16,7 +16,7 @@
 - ✅ Some routes like /reviews/{review_id}/comments could benefit from a GET version to view comments, not just POST.
   - added get comments
 
-## Anthony Huang Schema/API Design
+### Anthony Huang Schema/API Design
 - ❌ The settings table uses both id and user_id as primary keys. That can cause problems, it should just use one.
     - id is supposed to be id for setting
 - ✅ The User model is used in routes where only user_id is needed. It would be easier to just pass the ID.
@@ -40,7 +40,7 @@
 - ✅ Some endpoints return raw lists of data. It might be better to wrap them in a response object for easier parsing on the frontend.
   - created response objects
 
-## Anna Grillo Code Review
+### Anna Grillo Code Review
 - ✅ add comments to recomendation algorithm - about how decisions are being made/why you chose 1.2 and 1.1 as the starting values
 - ✅ popular_recomendations, could do less work in the api call, make a helper function
   - made a get game info function after getting games recommended
@@ -60,7 +60,7 @@
   - it will return an empty list, so it should be fine
 - ✅ Add_friends should be POST 
 
-## Anna Grillo Schema/API Design
+### Anna Grillo Schema/API Design
 - ✅ There should be a way for users to see who has added them that they are not friends with yet, currently you only have display list of friends
   - added get people that added user function
 - ✅ maybe display optional reviews in the feed or in history, currently no way to see those reviews
@@ -78,57 +78,87 @@
 ### Hudson Code Review
 
 - ✅ There is a bug in users.py at the create_user endpoint. No matter what, it returns a 500 server error because your id column in settings is not set up to be the primary key and increment automatically.
-- id is supposed to be id for setting
+  - id is supposed to be id for setting
 - ✅ Create_user is defaulting "private" as the name for each user rather than using new_user.username, which you collect as the parameter.
-- Updated parameter name to use username instead of hardcoded 'private'
+  - Updated parameter name to use username instead of hardcoded 'private'
 - ✅ Get_reviews_for_games function should be a GET, not a POST
-- Changed to GET method
+  - Changed to GET method
 - ✅ Search_games should be GET as well
-- Changed to GET method
+  - Changed to GET method
 - ✅ And get_recent_games
-- Changed to GET method
+  - Changed to GET method
 - ✅ You can take the /games/ out of all the endpoints, as it causes the name to be duplicated
-- Fixed
+  - Fixed
 - ✅ I wasn't able to get your get_recent_games function to return anything
-- Fixed parameter passing and query implementation
+  - Fixed parameter passing and query implementation
 - ✅ Same thing with get_reviews_for_games.
-- Added proper parameter handling and fixed query logic
+  - Added proper parameter handling and fixed query logic
 - ✅ Add_friends should be POST not GET\
-- Changed to POST
+  - Changed to POST
 - ✅ Post_comment returns a server error as it is trying to return the newly created id, however, there is no id column.
-- Changed RETURNING clause to use correct column name (comment_id)
+  - Changed RETURNING clause to use correct column name (comment_id)
 - ✅ Get_feed returns a server error as it is selecting games.name instead of games.game which is what is used in your table
-- Updated column reference to match database schema
+  - Updated column reference to match database schema
 - ✅ The delete_post function throws an error because it has two DELETE statements under the same connection.execute.
-- Split into separate execute calls for each DELETE statement
+  - Split into separate execute calls for each DELETE statement
 - ✅ The delete_post function will not work as intended as it blindly tries to delete the same review id from both reviews and optional_reviews. This is problematic as the reviews are most likely different and deleting both seems like an unintended side effect of deleting one.
-- Added existence check before deletion and proper cascading delete logic
+  - Added existence check before deletion and proper cascading delete logic
 - ✅ The delete_post function will only return success upon rowcount being 0
-- Fixed success condition to properly report when rows were deleted
+  - Fixed success condition to properly report when rows were deleted
 - ✅ Delete the /admin from the delete_post endpoint
-- Fixed
+  - Fixed
 - ✅ The add_friends function returned "TypeError: Failed to execute 'fetch' on 'Window': Request with GET/HEAD method cannot have body."
-- removed request bodies from GET methods
+  - removed request bodies from GET methods
 - ✅ I got the same error for display_friends
-- removed request bodies from GET methods
+  - removed request bodies from GET methods
 - ✅ And show_history
-- removed request bodies from GET methods
+  - removed request bodies from GET methods
 - ✅ And show_top
-- removed request bodies from GET methods
+  - removed request bodies from GET methods
 
 ### Hudson Schema/API Comments
 - ✅ Get rid of top-level arrays in the request and response payloads. So instead of [ { "review_id": 123 } ], just do { "review_id": 123 }.
-- Removed arrays when useless
+  - Removed arrays when useless
 - ✅ Remove quotes from numbers and booleans
-- Modified all JSON responses to properly format numbers and booleans without quotes
+  - Modified all JSON responses to properly format numbers and booleans without quotes
 - ✅Don't bounce around between snake_case and camelCase, just pick one
-- Standardized all naming to use snake_case throughout the API for consistency
+  - Standardized all naming to use snake_case throughout the API for consistency
 -❌I would change the word optional in the optional_reviews to be something else, like aspects or something. It is a little confusing - when first looking at the code and layout. Switching the wording will make its function less ambiguous.
-- It is called optional review because it is something that users can add to the review if they want
+  - It is called optional review because it is something that users can add to the review if they want
 - ✅Put the search and filter params in the query string, not the GET body
-- Moved all search and filter parameters to query strings for GET requests
+  - Moved all search and filter parameters to query strings for GET requests
 - Move delete_post from admin to posts
-- ❌We want that to be so a admin can delete posts that aren't suitable
+  - ❌We want that to be so a admin can delete posts that aren't suitable
 - ✅Include constraints for things like ratings and comment length
 Return location on creation calls
-- Added validation constraints - ratings must be between 1-10 and comments have a maximum length of 500 characters
+  - Added validation constraints - ratings must be between 1-10 and comments have a maximum length of 500 characters
+
+### Weston Code Review
+- ✅For the games endpoint, the results are returned in order of ID, then sorted by updated date. Since IDs are unique, the results will never be sorted by date. Suggestion: Remove the ID from the ORDER BY.
+  - Removed ID in Order By
+- ✅ Side Note: This endpoint is called /games/games
+  - Fixed
+- The games/search endpoint takes the results from the query and immediately attempts to turn the mappings into a list, however, you risk throwing an error if the query returns nothing. (This is especially relevant as there will likely be searches that do not match anything.)
+  - ❌ List will be empty if query returns nothing, but an error should not be thrown
+- The endpoint game/{game_id} does not appear to ever use the ID field and accepts a string as a search. It is unclear if this endpoint is meant to get a game's reviews by ID or by search. Either way, it should be a GET endpoint, not a POST.
+  - ✅ Changed to a GET
+- ✅ Currently, your /create endpoint does not work and returns a 500 internal server error no matter what. It is hard to pin down what this error is without seeing the stack trace. The issue likely involves your insertion into the settings tables and the creation of the setting IDs. I recommend attempting to test this endpoint and reviewing the stack trace to see if it's a query or table issue.
+  - Fixed this to work, it was an issue withs settings table
+- ✅ The /{user_id}/friends endpoint at first glance appears to be getting the user_id from the path; however, the endpoint accepts a User object with both the user ID and the password, meaning this "user_id" is never actually used.
+  - Fixed to just take in the user_id
+- ✅/{user_id}/history and /{user_id}/favorite have a similar problem as above, where your endpoint does not use the "user_id" value and instead opts to accept a User object. One note is that, given that there is no way to make a user ID and username pair, there is no way to test this endpoint.
+  - Fixed to use the user_id
+- ✅ The entire notion of settings is a bit unclear. There is no way to currently add a setting; however, the `user/{user_id}/setting/edit can be used to edit one using its ID, but where this comes from is unclear. I would first reexamine whether this settings table is needed and what purpose it serves. If it's deemed necessary, then rebuild the endpoints and functionality around that purpose.
+  - Got rid of settings, not a necessary separate table for the time being. Just joined the info into the users table
+- ✅ These endpoint looks pretty good, there are just a few things you could clean up to reduce confusion. Right now, you use the term review_id to reference both reviews and optional reviews; you may want to make it clear which is which for debugging purposes and to grow functionality in the future.
+  - Review ID is for to link optional tables to the mandatory review table, made comments to clear it up
+- ❌ You have solid POST functions, but you may want to add some GET endpoints, if anything, to be used as helper functions when retrieving a game's reviews. Further, I could see value in adding endpoints that extend a review to show its comments and/or its optional reviews.
+  - I do not believe that helper functions are necessary as the code is simple enough as it is. I think that adding endpoints to extend a review might be more of a frontend detail that would come later. For right now, with our current scope, I do not see it being a necessary addition.
+- ✅ Some of your POST endpoints that involve review_id (any of them, in fact) are vulnerable to error if that ID does not exist. You may want to explore adding exceptions and HTTP status code responses instead of just having this lead to a 500 error.
+  - Added some 404 exceptions for if ID does not exist
+- ❌ Continuing on the point above, you could consolidate some of your endpoints (i.e., /optional and /optional/edit to where if the id doesn't exist, it creates a review, and if it does, it edits it (This works for regular reviews as well).
+  - I think it is better to keep them separate for now both for readability. I would prefer to have it as two shorter functions that have separate functionality.
+-✅ This is a very ambiguous and exciting endpoint. Unfortunately, there is no easy way to test if it works, and you will likely have some debugging to do here. There is a lot of very interesting functionality here that could serve as its own endpoint (recent genres, top genres, and shared interests), so I recommend breaking this endpoint up into smaller helper functions that you could turn into new endpoints. This will make testing and refining much easier.
+  - I agree that it is ambigious, however, we want the algorithm to be a little ambiguous and grand in what it sorts by. Currently, all of the values come from separate execute statements. For now, this is readable and manageable, however, if we choose to make it more complex, we will add helper functions.
+- ✅ Currently, this endpoint is returning a 500 internal server error, and without a stack trace, it is not easy to find a reason why. Examining your code, the error is likely in the query somewhere and could be due to a mismatch with table/attribute names. I recommend running this locally and replicating the error to gain more information on what is causing the issues.
+  - Works locally, error is likely coming from needing fake data.
