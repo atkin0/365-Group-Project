@@ -1,8 +1,8 @@
 from typing import List
 
-from fastapi import APIRouter, Depends, status, HTTPException
+from fastapi import APIRouter, Depends, status, HTTPException, Query
 import sqlalchemy
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, constr
 from src.api import auth
 from src import database as db
 
@@ -14,19 +14,22 @@ router = APIRouter(
 
 class OptionalReview(BaseModel):
     aspect: str
-    score: int
+    score: int = Field(..., ge=1, le=10, description="Rating must be between 1 and 10")
 
 class FeedItem(BaseModel):
     game_title: str
     username: str
-    score: int
-    description: str
+    score: int = Field(..., ge=1, le=10, description="Rating must be between 1 and 10")
+    description: constr(max_length=500) = Field(..., description="Review text limited to 500 characters")
     optional_reviews: List[OptionalReview]
 
 
 
 @router.get("/{user_id}", status_code=status.HTTP_200_OK, response_model=List[FeedItem])
-def get_feed(user_id: int, limit: int):
+def get_feed(
+    user_id: int, 
+    limit: int = Query(10, description="Maximum number of feed items to return")
+):
 
     with db.engine.begin() as connection:
         if not connection.execute(

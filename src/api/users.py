@@ -1,7 +1,7 @@
 from typing import List
 
-from fastapi import APIRouter, Depends, status, HTTPException
-from pydantic import BaseModel
+from fastapi import APIRouter, Depends, status, HTTPException, Query
+from pydantic import BaseModel, Field, constr
 import sqlalchemy
 from src.api import auth
 from src import database as db
@@ -16,8 +16,8 @@ class UserCreateResponse(BaseModel):
     user_id: int
 
 class CreateUser(BaseModel):
-    username: str
-    private: int
+    username: constr(min_length=3, max_length=50) = Field(..., description="Username must be between 3 and 50 characters")
+    private: int = Field(..., ge=0, le=1, description="Private setting must be either 0 (public) or 1 (private)")
 
 class Setting(BaseModel):
     id: int
@@ -48,7 +48,7 @@ def create_user(new_user: CreateUser):
                 RETURNING id
                 """
             ),
-            [{"username": new_user.username}],
+            {"username": new_user.username},
         ).scalar_one()
         connection.execute(
             sqlalchemy.text(
@@ -57,7 +57,7 @@ def create_user(new_user: CreateUser):
                 VALUES (:user_id, 'private', :private_value)
                 """
             ),
-            [{"user_id": result, "username": new_user.username, "private_value": new_user.private}],
+            {"user_id": result, "username": new_user.username, "private_value": new_user.private},
         )
 
     return UserCreateResponse(user_id=result)
@@ -85,7 +85,7 @@ def add_friends(user_id: int, friend_id: int):
                 VALUES (:user_adding_id, :user_added_id)
                 """
             ),
-            [{"user_adding_id": user_id, "user_added_id": friend_id}]
+            {"user_adding_id": user_id, "user_added_id": friend_id}
         )
         
 
@@ -111,7 +111,7 @@ def display_my_friended(user_id: int):
                 WHERE friends.user_adding_id = :user_id;
                 """
             ),
-            [{"user_id": user_id}]
+            {"user_id": user_id}
         )
 
         for r in results:
@@ -141,7 +141,7 @@ def display_friended_me(user_id: int):
                 WHERE friends.user_added_id = :user_id;
                 """
             ),
-            [{"user_id": user_id}]
+            {"user_id": user_id}
         )
 
         for r in results:
@@ -164,7 +164,7 @@ def show_settings(user_id: int):
                 WHERE user_id = :user_id
                 """
             ),
-            [{"user_id": user_id}]
+            {"user_id": user_id}
         ).fetchall()
         
         for row in results:
@@ -197,11 +197,14 @@ def edit_settings(user_id: int, setting: Setting):
                 WHERE id = :id AND user_id = :user_id AND name = :name
                 """
             ),
-            [{"value": setting.value, "id": setting.id, "user_id": user_id, "name" :setting.name}]
+            {"value": setting.value, "id": setting.id, "user_id": user_id, "name" :setting.name}
         )
         
-@router.get("/{user_id}/history", response_model= list[Reviews])
-def show_history(user_id: int, limit: int):
+@router.get("/{user_id}/history", response_model=list[Reviews])
+def show_history(
+    user_id: int, 
+    limit: int = Query(10, description="Maximum number of history items to return")
+):
     """
     Display a users history.
     """
@@ -222,7 +225,7 @@ def show_history(user_id: int, limit: int):
                 LIMIT :limit
                 """
             ),
-            [{"user_id": user_id, "limit": limit}]
+            {"user_id": user_id, "limit": limit}
         )
         for review in result:
             reviews_list.append(
@@ -259,7 +262,7 @@ def show_top(user_id: int):
                 LIMIT 5
                 """
             ),
-            [{"user_id": user_id}]
+            {"user_id": user_id}
         ).fetchall()
 
     for review in result:

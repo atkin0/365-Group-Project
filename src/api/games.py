@@ -1,5 +1,5 @@
 import datetime
-from fastapi import APIRouter, Depends, status, HTTPException
+from fastapi import APIRouter, Depends, status, HTTPException, Query
 from pydantic import BaseModel
 import sqlalchemy
 from src.api import auth
@@ -60,7 +60,7 @@ class GameHistoryResponse(BaseModel):
 
 #Returns most recent 20 games reviewed, so people can see whats been getting reviewed recently for inspiration
 @router.get("/", response_model=List[Game])
-def get_recent_games(limit: int):
+def get_recent_games(limit: int = Query(10, description="Maximum number of recent games to return")):
     with db.engine.begin() as connection:
         result = connection.execute(
             sqlalchemy.text(
@@ -81,8 +81,8 @@ def get_recent_games(limit: int):
         return games
     
 
-@router.get("/search",response_model=List[Game])
-def search_games(search: str):
+@router.get("/search", response_model=List[Game])
+def search_games(search: str = Query(..., description="Search term for finding games")):
     with db.engine.begin() as connection:
         result = connection.execute(
             sqlalchemy.text(
@@ -92,14 +92,18 @@ def search_games(search: str):
                 WHERE game ILIKE :search
                 """
             ),
-            [{"search": f"%{search}%"}]
+            {"search": f"%{search}%"}
         )
         rows = list(result.mappings())
         print(rows)
         return rows
 
-@router.get("/{game_id}",response_model=List[Review])
-def get_reviews_for_games(search: str, limit: int):
+@router.get("/{game_id}", response_model=List[Review])
+def get_reviews_for_games(
+    game_id: int,
+    search: str = Query("", description="Filter reviews by text content"),
+    limit: int = Query(10, description="Maximum number of reviews to return")
+):
     with db.engine.begin() as connection:
         result = connection.execute(
             sqlalchemy.text(
@@ -272,4 +276,4 @@ def get_game_overview(game_id: int):
             total_playtime=total_playtime,
             reviews=reviews,
             optional_reviews=optional_reviews
-        ) 
+        )
