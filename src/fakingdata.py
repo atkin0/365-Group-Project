@@ -28,6 +28,7 @@ random = Random()
 num_users = 20000
 num_friends = 20
 num_reviews = 400000
+num_optional_reviews = 2
 
 
 with engine.begin() as conn:
@@ -77,7 +78,22 @@ with engine.begin() as conn:
             }
         )
 
-
+    for i in range(num_users):
+        for _ in range(random.randint(1, 20)):
+            game_id = random.randint(1, num_games)
+            time_played = random.randint(1, 100)
+            conn.execute(
+                sqlalchemy.text(
+                    """
+                    INSERT INTO history (user_id, game_id, time_played)
+                    VALUES (:user_id, :game_id, :time_played)
+                    ON CONFLICT (user_id, game_id) 
+                    DO UPDATE SET
+                    time_played = time_played + :time_played;
+                    """
+                ),
+                {"user_id": i, "game_id": game_id, "time_played": time_played}
+            )
 
     for i in range(1, num_users+1):
 
@@ -88,6 +104,8 @@ with engine.begin() as conn:
                     """
                     INSERT INTO friends (user_adding_id, user_added_id) 
                     VALUES (:user_adding_id, user_added_id);
+                    ON CONFLICT (user_adding_id, user_added_id)
+                    DO NOTHING
                     """
                 ),
                 {
@@ -97,9 +115,47 @@ with engine.begin() as conn:
             )
 
     for _ in range(num_reviews):
-        random_user_id = random.randint(1, num_users)
+        user_id = random.randint(1, num_users)
         score = int(np.random.normal() * 10)
         text = fake.text(10)
+        game_id = random.randint(1, num_games)
+
+        review_id = conn.execute(
+            sqlalchemy.text(
+                """
+                INSERT INTO reviews (score, text, published, user_id, game_id) 
+                VALUES (:score, :text, :published, :user_id, :game_id);
+                RETURNING id
+                """
+            ),
+            {
+                "score": score,
+                "text": text,
+                "published": True,
+                "user_id": user_id,
+                "game_id": game_id
+            }
+        ).scalar_one()
+
+        for i in range(num_optional_reviews):
+            optional_rating = int(np.random.normal() * 10)
+            review_name = fake.text(1)
+
+            conn.execute(
+                sqlalchemy.text(
+                    """
+                    INSERT INTO optional_reviews (review_name, optional_rating, review_id) 
+                    VALUES (:review_name, :optional_rating, :review_id);
+                    """
+                ),
+                {
+                    "review_name": review_name,
+                    "optional_rating": optional_rating,
+                    "review_id": review_id,
+                }
+            )
+
+
 
 
 
