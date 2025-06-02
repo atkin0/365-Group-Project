@@ -277,3 +277,29 @@ def show_top(user_id: int):
             )
         )
     return reviews_list
+
+@router.post("/{user_id}/games_played",  status_code=status.HTTP_204_NO_CONTENT)
+def add_game_played(user_id: int, time_played: int, game_id: int):
+    """
+    Add a game into a user's played history
+    """
+    with db.engine.begin() as connection:
+        if not connection.execute(
+                sqlalchemy.text("SELECT 1 FROM users where id = :id"),
+                {"id": user_id}).first():
+            raise HTTPException(status_code=404, detail="User doesn't exist")
+
+        connection.execute(
+            sqlalchemy.text(
+                """
+                INSERT INTO history (user_id, game_id, time_played)
+                VALUES (:user_id, :game_id, :time_played)
+                ON CONFLICT (user_id, game_id) 
+                DO UPDATE SET
+                time_played = time_played + :time_played;
+                """
+            ),
+            {"user_id": user_id, "game_id": game_id, "time_played": time_played}
+        )
+
+    pass
