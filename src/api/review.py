@@ -46,6 +46,7 @@ def send_review(review: Reviews):
         ).scalar_one()
     return ReviewCreateResponse(review_id=result)
 
+#review_id links the optional_review and required review
 @router.post("/{review_id}/optional", status_code=status.HTTP_204_NO_CONTENT)
 def optional_review(review_id: int, optional: OptionalReviews):
     """
