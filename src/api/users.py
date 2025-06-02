@@ -17,7 +17,7 @@ class UserCreateResponse(BaseModel):
 
 class CreateUser(BaseModel):
     username: constr(min_length=3, max_length=50) = Field(..., description="Username must be between 3 and 50 characters")
-    private: int = Field(..., ge=0, le=1, description="Private setting must be either 0 (public) or 1 (private)")
+    private: bool 
 
 class Setting(BaseModel):
     name: str
