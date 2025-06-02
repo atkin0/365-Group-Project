@@ -121,20 +121,20 @@
   - Removed arrays when useless
 - ✅ Remove quotes from numbers and booleans
   - Modified all JSON responses to properly format numbers and booleans without quotes
-- ✅Don't bounce around between snake_case and camelCase, just pick one
+- ✅ Don't bounce around between snake_case and camelCase, just pick one
   - Standardized all naming to use snake_case throughout the API for consistency
--❌I would change the word optional in the optional_reviews to be something else, like aspects or something. It is a little confusing - when first looking at the code and layout. Switching the wording will make its function less ambiguous.
+- ❌ I would change the word optional in the optional_reviews to be something else, like aspects or something. It is a little confusing - when first looking at the code and layout. Switching the wording will make its function less ambiguous.
   - It is called optional review because it is something that users can add to the review if they want
 - ✅Put the search and filter params in the query string, not the GET body
   - Moved all search and filter parameters to query strings for GET requests
 - Move delete_post from admin to posts
-  - ❌We want that to be so a admin can delete posts that aren't suitable
-- ✅Include constraints for things like ratings and comment length
+  - ❌ We want that to be so a admin can delete posts that aren't suitable
+- ✅ Include constraints for things like ratings and comment length
 Return location on creation calls
   - Added validation constraints - ratings must be between 1-10 and comments have a maximum length of 500 characters
 
 ### Weston Code Review
-- ✅For the games endpoint, the results are returned in order of ID, then sorted by updated date. Since IDs are unique, the results will never be sorted by date. Suggestion: Remove the ID from the ORDER BY.
+- ✅ For the games endpoint, the results are returned in order of ID, then sorted by updated date. Since IDs are unique, the results will never be sorted by date. Suggestion: Remove the ID from the ORDER BY.
   - Removed ID in Order By
 - ✅ Side Note: This endpoint is called /games/games
   - Fixed
