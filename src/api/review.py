@@ -24,13 +24,20 @@ class OptionalReviews(BaseModel):
 class ReviewCreateResponse(BaseModel):
     review_id: int
 
+class GetReview(BaseModel):
+    username: str
+    game: str
+    score: int
+    text: str
+    updated_at: str
+
 class PostCommentResponse(BaseModel):
     comment_id: int
 
 class Comment(BaseModel):
     username: str
-
     text: str
+
 class CommentCreate(BaseModel):
     user_id: int
     comment: str = Field(..., max_length=500, description="Comment text limited to 500 characters")
@@ -120,6 +127,31 @@ def patch_review(review_id: int, review: Reviews):
             {"review_id": review_id, "user_id": review.user_id, "score": review.score, "text": review.text, "game_id": review.game_id}
         )
     pass
+
+@router.get("/", response_model=Reviews)
+def get_review_from_id(review_id: int):
+    with db.engine.begin() as connection:
+        if not connection.execute(
+                    sqlalchemy.text("SELECT 1 FROM reviews where id = :id"),
+                    {"id": review_id}).first():
+                raise HTTPException(status_code=404, detail="Review doesn't exist")
+        
+        result = connection.execute(
+            sqlalchemy.text(
+                """
+                SELECT users.username, games.game, score, text, updated_at
+                FROM reviews
+                JOIN users ON users.id = reviews.id
+                JOIN games ON games.id = reviews.game_id
+                WHERE reviews.id = :review_id
+                """
+            ),
+            {"review_id": review_id}
+        ).fetchall()
+    return(GetReview())
+
+
+
 
 @router.post("/{review_id}/comments", status_code=status.HTTP_200_OK, response_model=PostCommentResponse)
 def post_comment(
