@@ -4,6 +4,7 @@ import sqlalchemy
 from src.api import auth
 from src import database as db
 from typing import List
+from datetime import datetime
 
 router = APIRouter(
     prefix="/reviews",
@@ -29,7 +30,7 @@ class GetReview(BaseModel):
     game: str
     score: int
     text: str
-    updated_at: str
+    updated_at: datetime
 
 class PostCommentResponse(BaseModel):
     comment_id: int
@@ -128,7 +129,7 @@ def patch_review(review_id: int, review: Reviews):
         )
     pass
 
-@router.get("/", response_model=Reviews)
+@router.get("/{review_id}/get", response_model=GetReview)
 def get_review_from_id(review_id: int):
     with db.engine.begin() as connection:
         if not connection.execute(
@@ -141,15 +142,18 @@ def get_review_from_id(review_id: int):
                 """
                 SELECT users.username, games.game, score, text, updated_at
                 FROM reviews
-                JOIN users ON users.id = reviews.id
+                JOIN users ON users.id = reviews.user_id
                 JOIN games ON games.id = reviews.game_id
-                WHERE reviews.id = :review_id
+                WHERE reviews.id = :review_id AND reviews.published = TRUE
                 """
             ),
             {"review_id": review_id}
-        ).fetchall()
-    return(GetReview())
+        ).mappings().fetchone()
 
+    print(result)
+    if not result:
+        raise HTTPException(status_code=404, detail="Invalid Review ID") 
+    return(GetReview(username=result["username"], game=result["game"],score=result["score"],text=result["text"],updated_at=result["updated_at"]))
 
 
 
