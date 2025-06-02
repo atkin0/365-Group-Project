@@ -77,21 +77,35 @@ Anna Grillo Schema/API Design
 
   Hudson Code Review
 ✅ There is a bug in users.py at the create_user endpoint. No matter what, it returns a 500 server error because your id column in settings is not set up to be the primary key and increment automatically.
-Response: id is supposed to be id for setting
+- id is supposed to be id for setting
 ✅ Create_user is defaulting "private" as the name for each user rather than using new_user.username, which you collect as the parameter.
+- Updated parameter name to use username instead of hardcoded 'private'
 ✅ Get_reviews_for_games function should be a GET, not a POST
+- Changed to GET method
 ✅ Search_games should be GET as well
+- Changed to GET method
 ✅ And get_recent_games
+- Changed to GET method
 ✅ You can take the /games/ out of all the endpoints, as it causes the name to be duplicated
+- Fixed
 ✅ I wasn't able to get your get_recent_games function to return anything
+- Fixed parameter passing and query implementation
 ✅ Same thing with get_reviews_for_games.
-✅ Add_friends should be POST not GET
-❌ Post_comment returns a server error as it is trying to return the newly created id, however, there is no id column.
+- Added proper parameter handling and fixed query logic
+✅ Add_friends should be POST not GET\
+- Changed to POST
+✅ Post_comment returns a server error as it is trying to return the newly created id, however, there is no id column.
+- Changed RETURNING clause to use correct column name (comment_id)
 ✅ Get_feed returns a server error as it is selecting games.name instead of games.game which is what is used in your table
-❌ The delete_post function throws an error because it has two DELETE statements under the same connection.execute.
-❌ The delete_post function will not work as intended as it blindly tries to delete the same review id from both reviews and optional_reviews. This is problematic as the reviews are most likely different and deleting both seems like an unintended side effect of deleting one.
-❌ The delete_post function will only return success upon rowcount being 0
-❌ Delete the /admin from the delete_post endpoint
+- Updated column reference to match database schema
+✅ The delete_post function throws an error because it has two DELETE statements under the same connection.execute.
+- Split into separate execute calls for each DELETE statement
+✅ The delete_post function will not work as intended as it blindly tries to delete the same review id from both reviews and optional_reviews. This is problematic as the reviews are most likely different and deleting both seems like an unintended side effect of deleting one.
+- Added existence check before deletion and proper cascading delete logic
+✅ The delete_post function will only return success upon rowcount being 0
+- Fixed success condition to properly report when rows were deleted
+✅ Delete the /admin from the delete_post endpoint
+- Fixed
 ✅ The add_friends function returned "TypeError: Failed to execute 'fetch' on 'Window': Request with GET/HEAD method cannot have body."
 - removed request bodies from GET methods
 ✅ I got the same error for display_friends
