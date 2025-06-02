@@ -1,4 +1,4 @@
-Anthony Huang Code Review
+## Anthony Huang Code Review
 - ✅ The route /admin/admin/delete is repeated. The second “admin” in the path isn’t needed.
 - ✅ The add_friends route is still using GET even though it sends data. This should be POST.
 - ✅ The get_recent_games route is a POST request, but it only gets data. It should be a GET.
@@ -16,7 +16,7 @@ Anthony Huang Code Review
 - ✅ Some routes like /reviews/{review_id}/comments could benefit from a GET version to view comments, not just POST.
   - added get comments
 
-Anthony Huang Schema/API Design
+## Anthony Huang Schema/API Design
 - ❌ The settings table uses both id and user_id as primary keys. That can cause problems, it should just use one.
     - id is supposed to be id for setting
 - ✅ The User model is used in routes where only user_id is needed. It would be easier to just pass the ID.
@@ -40,7 +40,7 @@ Anthony Huang Schema/API Design
 - ✅ Some endpoints return raw lists of data. It might be better to wrap them in a response object for easier parsing on the frontend.
   - created response objects
 
-Anna Grillo Code Review
+## Anna Grillo Code Review
 - ✅ add comments to recomendation algorithm - about how decisions are being made/why you chose 1.2 and 1.1 as the starting values
 - ✅ popular_recomendations, could do less work in the api call, make a helper function
   - made a get game info function after getting games recommended
@@ -60,7 +60,7 @@ Anna Grillo Code Review
   - it will return an empty list, so it should be fine
 - ✅ Add_friends should be POST 
 
-Anna Grillo Schema/API Design
+## Anna Grillo Schema/API Design
 - ✅ There should be a way for users to see who has added them that they are not friends with yet, currently you only have display list of friends
   - added get people that added user function
 - ✅ maybe display optional reviews in the feed or in history, currently no way to see those reviews
