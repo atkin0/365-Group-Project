@@ -72,3 +72,29 @@ Anna Grillo Schema/API Design
 - ✅ /feed/ returns a 500 internal server error
 - ❌ id is not set to the primary key in users
   - it is
+
+  Hudson Code Review
+✅ There is a bug in users.py at the create_user endpoint. No matter what, it returns a 500 server error because your id column in settings is not set up to be the primary key and increment automatically.
+Response: id is supposed to be id for setting
+✅ Create_user is defaulting "private" as the name for each user rather than using new_user.username, which you collect as the parameter.
+✅ Get_reviews_for_games function should be a GET, not a POST
+✅ Search_games should be GET as well
+✅ And get_recent_games
+✅ You can take the /games/ out of all the endpoints, as it causes the name to be duplicated
+✅ I wasn't able to get your get_recent_games function to return anything
+✅ Same thing with get_reviews_for_games.
+✅ Add_friends should be POST not GET
+❌ Post_comment returns a server error as it is trying to return the newly created id, however, there is no id column.
+✅ Get_feed returns a server error as it is selecting games.name instead of games.game which is what is used in your table
+❌ The delete_post function throws an error because it has two DELETE statements under the same connection.execute.
+❌ The delete_post function will not work as intended as it blindly tries to delete the same review id from both reviews and optional_reviews. This is problematic as the reviews are most likely different and deleting both seems like an unintended side effect of deleting one.
+❌ The delete_post function will only return success upon rowcount being 0
+❌ Delete the /admin from the delete_post endpoint
+✅ The add_friends function returned "TypeError: Failed to execute 'fetch' on 'Window': Request with GET/HEAD method cannot have body."
+- removed request bodies from GET methods
+✅ I got the same error for display_friends
+- removed request bodies from GET methods
+✅ And show_history
+- removed request bodies from GET methods
+✅ And show_top
+- removed request bodies from GET methods

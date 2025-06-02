@@ -73,11 +73,12 @@ def get_recent_games(limit: int):
                 LIMIT :limit
                 """
             ),
-            {"limit": limit}
+            {"limit": limit}  # FIXED: Removed the list wrapper
         )
-        rows = list(result.mappings())
-        print(rows)
-        return rows
+        games = []
+        for row in result:
+            games.append(Game(id=row.id, game=row.game, genre_id=row.genre_id))
+        return games
     
 
 @router.get("/search",response_model=List[Game])
@@ -106,15 +107,16 @@ def get_reviews_for_games(search: str, limit: int):
                 SELECT reviews.id, reviews.score, reviews.text
                 FROM games
                 JOIN reviews ON reviews.game_id = games.id
-                WHERE games.game ILIKE :search
+                WHERE games.game ILIKE :game_name
                 LIMIT :limit
                 """
             ),
-            [{"search": f"%{search}%", "limit": limit}]
+            {"game_name": f"%{search}%", "limit": limit} 
         )
-        rows = list(result.mappings())
-        print(rows)
-        return rows
+        reviews = []
+        for row in result:
+            reviews.append(Review(id=row.id, score=row.score, text=row.text))
+        return reviews
 
 @router.post("/history", response_model=GameHistoryResponse, status_code=status.HTTP_200_OK)
 def add_game_history(history: GameHistory):

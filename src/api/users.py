@@ -55,7 +55,7 @@ def create_user(new_user: CreateUser):
                 VALUES (:user_id, 'private', :private_value)
                 """
             ),
-            [{"user_id": result, "private_value": new_user.private}],
+            [{"user_id": result, "username": new_user.username, "private_value": new_user.private}],
         )
 
     return UserCreateResponse(user_id=result)
