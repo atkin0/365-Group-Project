@@ -69,7 +69,7 @@ def get_recent_games(limit: int = Query(10, description="Maximum number of recen
                 FROM reviews
                 JOIN games ON games.id = reviews.game_id 
                 WHERE reviews.published = true
-                ORDER BY reviews.game_id, reviews.updated_at DESC
+                ORDER BY reviews.updated_at DESC
                 LIMIT :limit
                 """
             ),

@@ -17,7 +17,7 @@ class UserCreateResponse(BaseModel):
 
 class CreateUser(BaseModel):
     username: constr(min_length=3, max_length=50) = Field(..., description="Username must be between 3 and 50 characters")
-    private: int = Field(..., ge=0, le=1, description="Private setting must be either 0 (public) or 1 (private)")
+    private: bool 
 
 class Setting(BaseModel):
     name: str
@@ -51,15 +51,6 @@ def create_user(new_user: CreateUser):
             ),
             {"username": new_user.username, "privacy": new_user.private},
         ).scalar_one()
-        connection.execute(
-            sqlalchemy.text(
-                """
-                INSERT INTO settings (user_id, name, value)
-                VALUES (:user_id, 'private', :private_value)
-                """
-            ),
-            {"user_id": result, "username": new_user.username, "private_value": new_user.private},
-        )
 
     return UserCreateResponse(user_id=result)
 
@@ -91,7 +82,7 @@ def add_friends(user_id: int, friend_id: int):
         
 
 
-@router.get("/{user_id}/friends", response_model= List[str])
+@router.get("/{user_id}/my_friends", response_model= List[str])
 def display_my_friended(user_id: int):
     """
     Display a users list of friends.
@@ -120,7 +111,7 @@ def display_my_friended(user_id: int):
 
     return friends_list
 
-@router.get("/{user_id}/friends", response_model= List[str])
+@router.get("/{user_id}/friended_me", response_model= List[str])
 def display_friended_me(user_id: int):
     """
     Display a users list of friends.

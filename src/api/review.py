@@ -15,7 +15,7 @@ class Reviews(BaseModel):
     user_id: int
     game_id: int
     score: int = Field(..., ge=1, le=10, description="Rating must be between 1 and 10")
-    text: constr(max_length=500) = Field(..., description="Review text limited to 500 characters")
+    text: str = Field(..., max_length=500, description="Review text limited to 500 characters")
 
 class OptionalReviews(BaseModel):
     aspect_to_review: str
@@ -29,7 +29,11 @@ class PostCommentResponse(BaseModel):
 
 class Comment(BaseModel):
     username: str
+
     text: str
+class CommentCreate(BaseModel):
+    user_id: int
+    comment: str = Field(..., max_length=500, description="Comment text limited to 500 characters")
 
 @router.post("/", response_model=ReviewCreateResponse)
 def send_review(review: Reviews):
@@ -46,6 +50,7 @@ def send_review(review: Reviews):
         ).scalar_one()
     return ReviewCreateResponse(review_id=result)
 
+#review_id links the optional_review and required review
 @router.post("/{review_id}/optional", status_code=status.HTTP_204_NO_CONTENT)
 def optional_review(review_id: int, optional: OptionalReviews):
     """
@@ -120,7 +125,7 @@ def patch_review(review_id: int, review: Reviews):
 def post_comment(
     review_id: int, 
     user_id: int, 
-    comment: constr(max_length=500) = Field(..., description="Comment text limited to 500 characters")
+    comment: CommentCreate
 ):
     with db.engine.begin() as connection:
         if not connection.execute(
