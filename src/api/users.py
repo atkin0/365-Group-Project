@@ -19,6 +19,9 @@ class CreateUser(BaseModel):
     username: constr(min_length=3, max_length=50) = Field(..., description="Username must be between 3 and 50 characters")
     private: bool 
 
+
+# False = Public Account
+# True = Private Account
 class Setting(BaseModel):
     name: str
     privacy_value: bool
