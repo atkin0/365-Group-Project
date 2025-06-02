@@ -1,4 +1,4 @@
-Anthony Huang Code Review
+## Anthony Huang Code Review
 - ✅ The route /admin/admin/delete is repeated. The second “admin” in the path isn’t needed.
 - ✅ The add_friends route is still using GET even though it sends data. This should be POST.
 - ✅ The get_recent_games route is a POST request, but it only gets data. It should be a GET.
@@ -16,7 +16,7 @@ Anthony Huang Code Review
 - ✅ Some routes like /reviews/{review_id}/comments could benefit from a GET version to view comments, not just POST.
   - added get comments
 
-Anthony Huang Schema/API Design
+## Anthony Huang Schema/API Design
 - ❌ The settings table uses both id and user_id as primary keys. That can cause problems, it should just use one.
     - id is supposed to be id for setting
 - ✅ The User model is used in routes where only user_id is needed. It would be easier to just pass the ID.
@@ -40,7 +40,7 @@ Anthony Huang Schema/API Design
 - ✅ Some endpoints return raw lists of data. It might be better to wrap them in a response object for easier parsing on the frontend.
   - created response objects
 
-Anna Grillo Code Review
+## Anna Grillo Code Review
 - ✅ add comments to recomendation algorithm - about how decisions are being made/why you chose 1.2 and 1.1 as the starting values
 - ✅ popular_recomendations, could do less work in the api call, make a helper function
   - made a get game info function after getting games recommended
@@ -60,7 +60,7 @@ Anna Grillo Code Review
   - it will return an empty list, so it should be fine
 - ✅ Add_friends should be POST 
 
-Anna Grillo Schema/API Design
+## Anna Grillo Schema/API Design
 - ✅ There should be a way for users to see who has added them that they are not friends with yet, currently you only have display list of friends
   - added get people that added user function
 - ✅ maybe display optional reviews in the feed or in history, currently no way to see those reviews
@@ -74,3 +74,43 @@ Anna Grillo Schema/API Design
 - ✅ /feed/ returns a 500 internal server error
 - ❌ id is not set to the primary key in users
   - it is
+
+## Hudson Code Review
+- ✅ There is a bug in users.py at the create_user endpoint. No matter what, it returns a 500 server error because your id column in settings is not set up to be the primary key and increment automatically.
+  - fixed settings table
+- ✅ Create_user is defaulting "private" as the name for each user rather than using new_user.username, which you collect as the parameter.
+  - Updated parameter name to use username instead of hardcoded 'private'
+- ✅ Get_reviews_for_games function should be a GET, not a POST
+  - Changed to GET method
+- ✅ Search_games should be GET as well
+  - Changed to GET method
+- ✅ And get_recent_games
+  - Changed to GET method
+- ✅ You can take the /games/ out of all the endpoints, as it causes the name to be duplicated
+  - Fixed
+- ✅ I wasn't able to get your get_recent_games function to return anything
+  - Fixed parameter passing and query implementation
+- ✅ Same thing with get_reviews_for_games.
+  - Added proper parameter handling and fixed query logic
+- ✅ Add_friends should be POST not GET\
+  - Changed to POST
+- ✅ Post_comment returns a server error as it is trying to return the newly created id, however, there is no id column.
+  - Changed RETURNING clause to use correct column name (comment_id)
+- ✅ Get_feed returns a server error as it is selecting games.name instead of games.game which is what is used in your table
+  - Updated column reference to match database schema
+- ✅ The delete_post function throws an error because it has two DELETE statements under the same connection.execute.
+  - Split into separate execute calls for each DELETE statement
+- ✅ The delete_post function will not work as intended as it blindly tries to delete the same review id from both reviews and optional_reviews. This is problematic as the reviews are most likely different and deleting both seems like an unintended side effect of deleting one.
+  - Added existence check before deletion and proper cascading delete logic
+- ✅ The delete_post function will only return success upon rowcount being 0
+  - Fixed success condition to properly report when rows were deleted
+- ✅ Delete the /admin from the delete_post endpoint
+  - Fixed
+- ✅ The add_friends function returned "TypeError: Failed to execute 'fetch' on 'Window': Request with GET/HEAD method cannot have body."
+  - removed request bodies from GET methods
+- ✅ I got the same error for display_friends
+  - removed request bodies from GET methods
+- ✅ And show_history
+  - removed request bodies from GET methods
+- ✅ And show_top
+  - removed request bodies from GET methods

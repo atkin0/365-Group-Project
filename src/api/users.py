@@ -17,12 +17,11 @@ class UserCreateResponse(BaseModel):
 
 class CreateUser(BaseModel):
     username: str
-    private: int
+    private: bool
 
 class Setting(BaseModel):
-    id: int
     name: str
-    value: int
+    privacy_value: bool
 
 class Reviews(BaseModel):
     user_id: int
@@ -40,26 +39,18 @@ def create_user(new_user: CreateUser):
 
     print(f"NEW USER: {new_user}")
     with db.engine.begin() as connection:
+
+        #Inserts new user info into the username table
         result = connection.execute(
             sqlalchemy.text(
                 """
-                INSERT INTO users (username)
-                VALUES (:username)
+                INSERT INTO users (username, account_is_private)
+                VALUES (:username, :privacy)
                 RETURNING id
                 """
             ),
-            [{"username": new_user.username}],
+            [{"username": new_user.username, "privacy": new_user.private}],
         ).scalar_one()
-        connection.execute(
-            sqlalchemy.text(
-                """
-                INSERT INTO settings (user_id, name, value)
-                VALUES (:user_id, 'private', :private_value)
-                """
-            ),
-            [{"user_id": result, "private_value": new_user.private}],
-        )
-
     return UserCreateResponse(user_id=result)
 
 @router.post("/{user_id}/add",  status_code=status.HTTP_204_NO_CONTENT)
@@ -159,20 +150,19 @@ def show_settings(user_id: int):
         results = connection.execute(
             sqlalchemy.text(
                 """
-                SELECT id, name, value
-                FROM settings
-                WHERE user_id = :user_id
+                SELECT username, account_is_private
+                FROM users
+                WHERE id = :id
                 """
             ),
-            [{"user_id": user_id}]
+            [{"id": user_id}]
         ).fetchall()
         
         for row in results:
             setting_list.append(
                 Setting(
-                    id=row.id,
-                    name=row.name,
-                    value=row.value
+                    name=row.username,
+                    privacy_value=row.account_is_private
                 )
             )
         
@@ -182,24 +172,25 @@ def show_settings(user_id: int):
 def edit_settings(user_id: int, setting: Setting):
     """
     Edit a users settings.
-    """
+    """ 
+
+    #setting.value should be passed in as true or false
+
     with db.engine.begin() as connection:
         if not connection.execute(
                 sqlalchemy.text("SELECT 1 FROM users where id = :id"),
                 {"id": user_id}).first():
             raise HTTPException(status_code=404, detail="User doesn't exist")
-
         connection.execute(
             sqlalchemy.text(
-                """
-                UPDATE settings
-                SET value = :value
-                WHERE id = :id AND user_id = :user_id AND name = :name
-                """
+                    """
+                    UPDATE users
+                    SET account_is_private = :privacy_value, username = :username
+                    WHERE id = :id
+                    """
             ),
-            [{"value": setting.value, "id": setting.id, "user_id": user_id, "name" :setting.name}]
+            [{"privacy_value": setting.privacy_value, "username": setting.name, "id": user_id}]
         )
-        
 @router.get("/{user_id}/history", response_model= list[Reviews])
 def show_history(user_id: int, limit: int):
     """

@@ -124,12 +124,12 @@ def post_comment(review_id: int, user_id: int, comment: str):
                 {"id": review_id}).first():
             raise HTTPException(status_code=404, detail="Review doesn't exist")
 
-        comment_id = connection.execute(
+        result = connection.execute(
             sqlalchemy.text(
                 """
                 INSERT INTO comments (review_id, user_id, text)
                 VALUES (:review_id, :user_id, :text)
-                RETURNING id
+                RETURNING comment_id
                 """
             ),
             {
@@ -137,9 +137,9 @@ def post_comment(review_id: int, user_id: int, comment: str):
                 "user_id": user_id,
                 "text": comment,
             }
-        )
+        ).scalar_one()
 
-        return PostCommentResponse(comment_id=comment_id)
+        return PostCommentResponse(comment_id=result)
 
 @router.get("/{review_id}/comments", status_code=status.HTTP_200_OK, response_model=List[Comment])
 def get_comments(review_id: int, limit: int):
