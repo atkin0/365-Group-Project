@@ -1,3 +1,4 @@
+import time
 from typing import List
 
 from fastapi import APIRouter, Depends, status, HTTPException, Query
@@ -30,6 +31,7 @@ def get_feed(
     user_id: int, 
     limit: int = Query(10, description="Maximum number of feed items to return")
 ):
+    start = time.time()
 
     with db.engine.begin() as connection:
         if not connection.execute(
@@ -39,7 +41,7 @@ def get_feed(
         reviews = connection.execute(
             sqlalchemy.text(
                 """
-                SELECT games.name AS game_title, users.username AS username, reviews.score AS score, reviews.text AS description, reviews.id AS review_id
+                SELECT games.game AS game_title, users.username AS username, reviews.score AS score, reviews.text AS description, reviews.id AS review_id
                 FROM reviews
                 JOIN games ON reviews.game_id = games.id
                 JOIN users ON reviews.user_id = users.id
@@ -84,4 +86,8 @@ def get_feed(
                     optional_reviews=optional_reviews
                 )
             )
+
+        end = time.time()
+        print(end - start)
+
         return feed

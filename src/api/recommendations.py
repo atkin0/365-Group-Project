@@ -1,3 +1,5 @@
+import time
+
 from fastapi import APIRouter, Depends, status, HTTPException
 from collections import defaultdict
 from pydantic import BaseModel
@@ -23,8 +25,9 @@ class GameRanked(BaseModel):
 
 @router.get("/{user_id}", response_model=List[Recommendation])
 def popular_recommendations(user_id: int):
-
+    start = time.time()
     with db.engine.begin() as connection:
+
         if not connection.execute(
                 sqlalchemy.text("SELECT 1 FROM users where id = :id"),
                 {"id": user_id}).first():
@@ -114,14 +117,17 @@ def popular_recommendations(user_id: int):
         if game.game_id in games_scores:
             games_scores[game.game_id] *= genres_multi[game.genre_id]
         else:
-            games_scores[game.game_id] = game.avg_score * genres_multi[game.genre_id]
+            games_scores[game.game_id] = float(game.avg_score) * genres_multi[game.genre_id]
 
     games_list: List[GameRanked] = []
     for game_id in games_scores:
         games_list.append(GameRanked(game_id=game_id, score=games_scores[game_id]))
     games_list.sort(key=lambda game: game.score, reverse=True)
 
-    return get_recommended_games(user_id=user_id, games_list=games_list)
+    games = get_recommended_games(user_id=user_id, games_list=games_list)
+    end = time.time()
+    print(end - start)
+    return games
 
 
 

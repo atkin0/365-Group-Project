@@ -1,3 +1,5 @@
+import time
+
 from fastapi import APIRouter, Depends, status, HTTPException
 from pydantic import BaseModel
 import sqlalchemy
@@ -16,6 +18,7 @@ class PostDeletionResponse(BaseModel):
 
 @router.delete("/delete", status_code=status.HTTP_200_OK, response_model=PostDeletionResponse)
 def delete_post(review_id: int):
+    start = time.time()
     with db.engine.begin() as connection:
         # First check if the review exists
         review_exists = connection.execute(
@@ -37,7 +40,9 @@ def delete_post(review_id: int):
             sqlalchemy.text("DELETE FROM reviews WHERE id = :review_id"),
             {"review_id": review_id}
         ).rowcount
-        
+
+        end = time.time()
+        print(end-start)
         return {
             "success": review_deleted > 0,
             "deleted_review": review_deleted > 0,

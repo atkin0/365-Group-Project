@@ -1,4 +1,6 @@
 import datetime
+import time
+
 from fastapi import APIRouter, Depends, status, HTTPException, Query
 from pydantic import BaseModel
 import sqlalchemy
@@ -61,11 +63,12 @@ class GameHistoryResponse(BaseModel):
 #Returns most recent 20 games reviewed, so people can see whats been getting reviewed recently for inspiration
 @router.get("/", response_model=List[Game])
 def get_recent_games(limit: int = Query(10, description="Maximum number of recent games to return")):
+    start = time.time()
     with db.engine.begin() as connection:
         result = connection.execute(
             sqlalchemy.text(
                 """
-                SELECT DISTINCT ON (reviews.game_id) reviews.game_id AS id, games.game, games.genre_id
+                SELECT DISTINCT reviews.game_id AS id, games.game, games.genre_id, reviews.updated_at
                 FROM reviews
                 JOIN games ON games.id = reviews.game_id 
                 WHERE reviews.published = true
@@ -78,11 +81,15 @@ def get_recent_games(limit: int = Query(10, description="Maximum number of recen
         games = []
         for row in result:
             games.append(Game(id=row.id, game=row.game, genre_id=row.genre_id))
+
+        end = time.time()
+        print(end - start)
         return games
     
 
 @router.get("/search", response_model=List[Game])
 def search_games(search: str = Query(..., description="Search term for finding games")):
+    start = time.time()
     with db.engine.begin() as connection:
         result = connection.execute(
             sqlalchemy.text(
@@ -96,6 +103,8 @@ def search_games(search: str = Query(..., description="Search term for finding g
         )
         rows = list(result.mappings())
         print(rows)
+        end = time.time()
+        print(end - start)
         return rows
 
 @router.get("/{game_id}", response_model=List[Review])
@@ -104,6 +113,7 @@ def get_reviews_for_games(
     search: str = Query("", description="Filter reviews by text content"),
     limit: int = Query(10, description="Maximum number of reviews to return")
 ):
+    start = time.time()
     with db.engine.begin() as connection:
         result = connection.execute(
             sqlalchemy.text(
@@ -120,10 +130,13 @@ def get_reviews_for_games(
         reviews = []
         for row in result:
             reviews.append(Review(id=row.id, score=row.score, text=row.text))
+        end = time.time()
+        print(end - start)
         return reviews
 
 @router.post("/history", response_model=GameHistoryResponse, status_code=status.HTTP_200_OK)
 def add_game_history(history: GameHistory):
+    start = time.time()
     with db.engine.begin() as connection:
         
         # Check if the game exists
@@ -177,6 +190,9 @@ def add_game_history(history: GameHistory):
                 "time_played": history.time_played
             }
         ).fetchone()
+
+        end = time.time()
+        print(end - start)
         
         return GameHistoryResponse(
             user_id=result.user_id,
@@ -187,6 +203,7 @@ def add_game_history(history: GameHistory):
 
 @router.get("/{game_id}/overview", response_model = GameOverview)
 def get_game_overview(game_id: int):
+    start = time.time()
     with db.engine.begin() as connection:
         connection.execute(sqlalchemy.text("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ"))
         
@@ -269,6 +286,9 @@ def get_game_overview(game_id: int):
         aggregate_rating = 0
         if reviews:
             aggregate_rating = mean([review.score for review in reviews])
+
+        end = time.time()
+        print(end - start)
         return GameOverview(
             game_id=game.id,
             title=game.title,

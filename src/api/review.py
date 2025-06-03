@@ -1,3 +1,5 @@
+import time
+
 from fastapi import APIRouter, Depends, status, HTTPException, Query
 from pydantic import BaseModel, Field, constr
 import sqlalchemy
@@ -45,6 +47,7 @@ class CommentCreate(BaseModel):
 
 @router.post("/", response_model=ReviewCreateResponse)
 def send_review(review: Reviews):
+    start = time.time()
     with db.engine.begin() as connection:
         result = connection.execute(
             sqlalchemy.text(
@@ -56,6 +59,8 @@ def send_review(review: Reviews):
             ),
             {"user_id": review.user_id, "score": review.score, "text": review.text, "game_id": review.game_id},
         ).scalar_one()
+    end = time.time()
+    print(end - start)
     return ReviewCreateResponse(review_id=result)
 
 #review_id links the optional_review and required review
@@ -64,7 +69,7 @@ def optional_review(review_id: int, optional: OptionalReviews):
     """
     Optional reviews for reviewing different aspects of a game. Each review can have multiple optional reviews extending.
     """
-
+    start = time.time()
     with db.engine.begin() as connection:
         if not connection.execute(
                 sqlalchemy.text("SELECT 1 FROM reviews where id = :id"),
@@ -76,20 +81,19 @@ def optional_review(review_id: int, optional: OptionalReviews):
                 """
                 INSERT INTO optional_reviews (review_name, optional_rating, review_id, updated_at)
                 VALUES (:review_name, :optional_rating, :review_id, NOW())
-                ON CONFLICT (review_name, review_id)
-                DO UPDATE SET 
-                optional_rating = :optional_rating, updated_at = NOW()
                 RETURNING id
                 """
             ),
             {"review_name": optional.aspect_to_review, "optional_rating": optional.optional_rating, "review_id": review_id},
         ).scalar_one()
-
+    end = time.time()
+    print(end - start)
     return ReviewCreateResponse(review_id=result)
 
 
 @router.patch("/{review_id}/publish", status_code=status.HTTP_204_NO_CONTENT)
 def post_review(review_id: int):
+    start = time.time()
     with db.engine.begin() as connection:
         if not connection.execute(
                 sqlalchemy.text("SELECT 1 FROM reviews where id = :id"),
@@ -100,16 +104,19 @@ def post_review(review_id: int):
             sqlalchemy.text(
                 """
                 UPDATE reviews
-                SET published = True
+                SET published = TRUE
                 WHERE id = :review_id
                 """
             ),
             {"review_id": review_id}
         )
+    end = time.time()
+    print(end - start)
     pass
 
 @router.patch("/{review_id}/edit", status_code=status.HTTP_204_NO_CONTENT)
 def patch_review(review_id: int, review: Reviews):
+    start = time.time()
     with db.engine.begin() as connection:
 
         if not connection.execute(
@@ -127,16 +134,14 @@ def patch_review(review_id: int, review: Reviews):
             ),
             {"review_id": review_id, "user_id": review.user_id, "score": review.score, "text": review.text, "game_id": review.game_id}
         )
+    end = time.time()
+    print(end - start)
     pass
 
 @router.get("/{review_id}/get", response_model=GetReview)
 def get_review_from_id(review_id: int):
+    start = time.time()
     with db.engine.begin() as connection:
-        if not connection.execute(
-                    sqlalchemy.text("SELECT 1 FROM reviews where id = :id"),
-                    {"id": review_id}).first():
-                raise HTTPException(status_code=404, detail="Review doesn't exist")
-        
         result = connection.execute(
             sqlalchemy.text(
                 """
@@ -152,7 +157,9 @@ def get_review_from_id(review_id: int):
 
     print(result)
     if not result:
-        raise HTTPException(status_code=404, detail="Invalid Review ID") 
+        raise HTTPException(status_code=404, detail="Invalid Review ID")
+    end = time.time()
+    print(end - start)
     return(GetReview(username=result["username"], game=result["game"],score=result["score"],text=result["text"],updated_at=result["updated_at"]))
 
 
@@ -163,6 +170,7 @@ def post_comment(
     user_id: int, 
     comment: CommentCreate
 ):
+    start = time.time()
     with db.engine.begin() as connection:
         if not connection.execute(
                 sqlalchemy.text("SELECT 1 FROM reviews where id = :id"),
@@ -180,10 +188,12 @@ def post_comment(
             {
                 "review_id": review_id,
                 "user_id": user_id,
-                "text": comment,
+                "text": comment.comment,
             }
         ).scalar_one()
 
+        end = time.time()
+        print(end - start)
         return PostCommentResponse(comment_id=result)
 
 @router.get("/{review_id}/comments", status_code=status.HTTP_200_OK, response_model=List[Comment])
@@ -191,6 +201,7 @@ def get_comments(
     review_id: int, 
     limit: int = Query(10, description="Maximum number of comments to return")
 ):
+    start = time.time()
     with db.engine.begin() as connection:
         if not connection.execute(
                 sqlalchemy.text("SELECT 1 FROM reviews where id = :id"),
@@ -217,5 +228,6 @@ def get_comments(
 
     for r in results:
         comments.append(Comment(username=r.username, text=r.text))
-
+    end = time.time()
+    print(end - start)
     return comments

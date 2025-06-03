@@ -1,3 +1,4 @@
+import time
 from typing import List
 
 from fastapi import APIRouter, Depends, status, HTTPException, Query
@@ -39,7 +40,7 @@ def create_user(new_user: CreateUser):
     """
     Creates a new User
     """
-
+    start = time.time()
     print(f"NEW USER: {new_user}")
     with db.engine.begin() as connection:
         #Inserts new user info into the username table
@@ -54,7 +55,8 @@ def create_user(new_user: CreateUser):
             {"username": new_user.username, "privacy": new_user.private},
         ).scalar_one()
 
-
+    end = time.time()
+    print(end - start)
     return UserCreateResponse(user_id=result)
 
 @router.post("/{user_id}/add",  status_code=status.HTTP_204_NO_CONTENT)
@@ -62,6 +64,7 @@ def add_friends(user_id: int, friend_id: int):
     """
     Add a user as a friend.
     """
+    start = time.time()
     with db.engine.begin() as connection:
         if not connection.execute(
                 sqlalchemy.text("SELECT 1 FROM users where id = :id"),
@@ -82,6 +85,8 @@ def add_friends(user_id: int, friend_id: int):
             ),
             {"user_adding_id": user_id, "user_added_id": friend_id}
         )
+    end = time.time()
+    print(end - start)
         
 
 
@@ -90,6 +95,7 @@ def display_my_friended(user_id: int):
     """
     Display a users list of friends.
     """
+    start = time.time()
     friends_list = []
     with db.engine.begin() as connection:
         if not connection.execute(
@@ -112,6 +118,8 @@ def display_my_friended(user_id: int):
         for r in results:
             friends_list.append(r.username)
 
+    end = time.time()
+    print(end - start)
     return friends_list
 
 @router.get("/{user_id}/friended_me", response_model= List[str])
@@ -119,7 +127,7 @@ def display_friended_me(user_id: int):
     """
     Display a users list of friends.
     """
-
+    start = time.time()
     friends_list = []
     with db.engine.begin() as connection:
         if not connection.execute(
@@ -142,6 +150,8 @@ def display_friended_me(user_id: int):
         for r in results:
             friends_list.append(r.username)
 
+    end = time.time()
+    print(end - start)
     return friends_list
 
 @router.get("/{user_id}/settings", response_model= list[Setting])
@@ -149,6 +159,7 @@ def show_settings(user_id: int):
     """
     Display a users settings.
     """
+    start = time.time()
     setting_list = []
     with db.engine.begin() as connection:
         results = connection.execute(
@@ -169,7 +180,8 @@ def show_settings(user_id: int):
                     privacy_value=row.account_is_private
                 )
             )
-        
+    end = time.time()
+    print(end - start)
     return setting_list
 
 @router.patch("/{user_id}/settings/edit", status_code=status.HTTP_204_NO_CONTENT)
@@ -204,6 +216,7 @@ def show_history(
     """
     Display a users history.
     """
+    start = time.time()
     reviews_list = []
     with db.engine.begin() as connection:
         if not connection.execute(
@@ -232,7 +245,8 @@ def show_history(
                     text=review.text
                 )
             )
-        
+    end = time.time()
+    print(end - start)
     return reviews_list
 
 
@@ -241,6 +255,7 @@ def show_top(user_id: int):
     """
     Display a users history.
     """
+    start = time.time()
     reviews_list = []
     with db.engine.begin() as connection:
         if not connection.execute(
@@ -270,30 +285,34 @@ def show_top(user_id: int):
                 text=review.text
             )
         )
+    end = time.time()
+    print(end - start)
     return reviews_list
 
-@router.post("/{user_id}/games_played",  status_code=status.HTTP_204_NO_CONTENT)
-def add_game_played(user_id: int, time_played: int, game_id: int):
-    """
-    Add a game into a user's played history
-    """
-    with db.engine.begin() as connection:
-        if not connection.execute(
-                sqlalchemy.text("SELECT 1 FROM users where id = :id"),
-                {"id": user_id}).first():
-            raise HTTPException(status_code=404, detail="User doesn't exist")
-
-        connection.execute(
-            sqlalchemy.text(
-                """
-                INSERT INTO history (user_id, game_id, time_played)
-                VALUES (:user_id, :game_id, :time_played)
-                ON CONFLICT (user_id, game_id) 
-                DO UPDATE SET
-                time_played = time_played + :time_played;
-                """
-            ),
-            {"user_id": user_id, "game_id": game_id, "time_played": time_played}
-        )
-
-    pass
+# @router.post("/{user_id}/games_played",  status_code=status.HTTP_204_NO_CONTENT)
+# def add_game_played(user_id: int, time_played: int, game_id: int):
+#     """
+#     Add a game into a user's played history
+#     """
+#     start = time.time()
+#     with db.engine.begin() as connection:
+#         if not connection.execute(
+#                 sqlalchemy.text("SELECT 1 FROM users where id = :id"),
+#                 {"id": user_id}).first():
+#             raise HTTPException(status_code=404, detail="User doesn't exist")
+#
+#         connection.execute(
+#             sqlalchemy.text(
+#                 """
+#                 INSERT INTO history (user_id, game_id, time_played)
+#                 VALUES (:user_id, :game_id, :time_played)
+#                 ON CONFLICT (user_id, game_id)
+#                 DO UPDATE SET
+#                 time_played = history.time_played + EXCLUDED.time_played;
+#                 """
+#             ),
+#             {"user_id": user_id, "game_id": game_id, "time_played": time_played}
+#         )
+#     end = time.time()
+#     print(end - start)
+#     pass
