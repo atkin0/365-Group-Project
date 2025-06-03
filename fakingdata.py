@@ -1,8 +1,5 @@
 import sqlalchemy
-import os
-import dotenv
 from faker import Faker
-import numpy as np
 from random import Random
 
 
@@ -22,14 +19,15 @@ engine = sqlalchemy.create_engine("postgresql+psycopg://myuser:mypassword@localh
 genres = ['FPS', 'Sandbox', 'Fighting', 'VR', 'Sports', 'Horror', 'Puzzle', 'RPG', 'Strategy',
               'Battle Royale', 'Adventure']
 
-num_games = 500
+
 
 fake = Faker()
 random = Random()
-num_users = 4
-num_friends = 2
-num_reviews = 40
-num_optional_reviews = 1
+num_games = 500
+num_users = 10000
+num_reviews = 300000
+num_optional_reviews = 2
+num_comments = 2
 
 
 with engine.begin() as conn:
@@ -37,6 +35,7 @@ with engine.begin() as conn:
     TRUNCATE reviews, users, friends, games, genres, optional_reviews, history, comments;
     """))
 
+    print("genres")
     for genre in genres:
         conn.execute(sqlalchemy.text("""
         INSERT INTO genres (genre) VALUES (:genre);
@@ -50,6 +49,7 @@ with engine.begin() as conn:
         ),
     ).scalar_one()
 
+    print("games")
     for _ in range(num_games):
         game_name = fake.company()
         game_genre = random.randint(first_genre_id, first_genre_id+10)
@@ -74,6 +74,7 @@ with engine.begin() as conn:
         ),
     ).scalar_one()
 
+    print("users")
     for _ in range(num_users):
         username = fake.name()
         conn.execute(
@@ -96,7 +97,9 @@ with engine.begin() as conn:
         ),
     ).scalar_one()
 
+    print("history")
     for i in range(num_users):
+        print(i) if i % 1000 == 0 else None
         for _ in range(random.randint(1, 5)):
             game_id = random.randint(first_game_id, first_game_id+num_games-1)
             time_played = random.randint(1, 100)
@@ -113,8 +116,10 @@ with engine.begin() as conn:
                 {"user_id": i+first_user_id, "game_id": game_id, "time_played": time_played}
             )
 
+    print("friends")
     for i in range(num_users):
-        for _ in range(num_friends):
+        print(i) if i% 1000 == 0 else None
+        for _ in range(random.randint(0,10)):
             random_friend_id = random.randint(first_user_id, first_user_id+num_users-1)
             while random_friend_id == i+first_user_id:
                 random_friend_id = random.randint(first_user_id, first_user_id + num_users - 1)
@@ -134,64 +139,68 @@ with engine.begin() as conn:
                 }
             )
 
-    for _ in range(num_reviews):
-        user_id = random.randint(first_user_id, first_user_id+num_users-1)
-        score = random.randint(1,10)
-        text = fake.text(10)
-        game_id = random.randint(first_game_id, first_game_id+num_games-1)
 
-        review_id = conn.execute(
-            sqlalchemy.text(
-                """
-                INSERT INTO reviews (score, text, published, user_id, game_id) 
-                VALUES (:score, :text, :published, :user_id, :game_id)
-                RETURNING id
-                """
-            ),
-            {
-                "score": score,
-                "text": text,
-                "published": True,
-                "user_id": user_id,
-                "game_id": game_id
-            }
-        ).scalar_one()
-
-        for i in range(num_optional_reviews):
-            optional_rating = random.randint(1,10)
-            review_name = fake.word()
-
-            conn.execute(
-                sqlalchemy.text(
-                    """
-                    INSERT INTO optional_reviews (review_name, optional_rating, review_id) 
-                    VALUES (:review_name, :optional_rating, :review_id);
-                    """
-                ),
-                {
-                    "review_name": review_name,
-                    "optional_rating": optional_rating,
-                    "review_id": review_id,
-                }
-            )
-
-        for _ in range(random.randint(0,2)):
-            user_id = random.randint(first_user_id, first_user_id + num_users - 1)
+for _ in range(100):
+    print("reviews " + str(_))
+    with engine.begin() as conn:
+        for _ in range(num_reviews//100):
+            user_id = random.randint(first_user_id, first_user_id+num_users-1)
+            score = random.randint(1,10)
             text = fake.text(10)
+            game_id = random.randint(first_game_id, first_game_id+num_games-1)
 
-            conn.execute(
+            review_id = conn.execute(
                 sqlalchemy.text(
                     """
-                    INSERT INTO comments (review_id, user_id, text) 
-                    VALUES (:review_id, :user_id, :text);
+                    INSERT INTO reviews (score, text, published, user_id, game_id) 
+                    VALUES (:score, :text, :published, :user_id, :game_id)
+                    RETURNING id
                     """
                 ),
                 {
-                    "review_id": review_id,
-                    "user_id": user_id,
+                    "score": score,
                     "text": text,
+                    "published": True,
+                    "user_id": user_id,
+                    "game_id": game_id
                 }
-            )
+            ).scalar_one()
+
+            for i in range(num_optional_reviews):
+                optional_rating = random.randint(1,10)
+                review_name = fake.word()
+
+                conn.execute(
+                    sqlalchemy.text(
+                        """
+                        INSERT INTO optional_reviews (review_name, optional_rating, review_id) 
+                        VALUES (:review_name, :optional_rating, :review_id);
+                        """
+                    ),
+                    {
+                        "review_name": review_name,
+                        "optional_rating": optional_rating,
+                        "review_id": review_id,
+                    }
+                )
+
+            for _ in range(num_comments):
+                user_id = random.randint(first_user_id, first_user_id + num_users - 1)
+                text = fake.text(10)
+
+                conn.execute(
+                    sqlalchemy.text(
+                        """
+                        INSERT INTO comments (review_id, user_id, text) 
+                        VALUES (:review_id, :user_id, :text);
+                        """
+                    ),
+                    {
+                        "review_id": review_id,
+                        "user_id": user_id,
+                        "text": text,
+                    }
+                )
 
 
 
