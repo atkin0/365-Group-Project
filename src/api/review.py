@@ -32,6 +32,13 @@ class GetReview(BaseModel):
     text: str
     updated_at: datetime
 
+class GetOptionalReview(BaseModel):
+    username: str
+    game: str
+    aspectToReview: str
+    score: int
+    updated_at: datetime
+
 class PostCommentResponse(BaseModel):
     comment_id: int
 
@@ -155,7 +162,34 @@ def get_review_from_id(review_id: int):
         raise HTTPException(status_code=404, detail="Invalid Review ID") 
     return(GetReview(username=result["username"], game=result["game"],score=result["score"],text=result["text"],updated_at=result["updated_at"]))
 
+#Pass in the review ID to get the optional reviews linked to it
+@router.get("/{review_id}/get/optional", response_model=List[GetOptionalReview])
+def get_optional_review_from_id(review_id: int):
+    with db.engine.begin() as connection:
+        if not connection.execute(
+                    sqlalchemy.text("SELECT 1 FROM reviews where id = :id"),
+                    {"id": review_id}).first():
+                raise HTTPException(status_code=404, detail="Review doesn't exist")
+        
+        row = connection.execute(
+            sqlalchemy.text(
+                """
+                SELECT users.username, games.game, review_name, optional_rating, optional_reviews.updated_at
+                FROM reviews
+                JOIN optional_reviews ON optional_reviews.review_id = reviews.id
+                JOIN users ON users.id = reviews.user_id
+                JOIN games ON games.id = reviews.game_id
+                WHERE reviews.id = :review_id AND reviews.published = TRUE
+                """
+            ),
+            {"review_id": review_id}
+        )
 
+    result = row.mappings().all()
+    if not result:
+        raise HTTPException(status_code=404, detail="Invalid Review ID") 
+    
+    return [GetOptionalReview(username=r["username"], game=r["game"],aspectToReview=r["review_name"],score=r["optional_rating"],updated_at=r["updated_at"]) for r in result]
 
 @router.post("/{review_id}/comments", status_code=status.HTTP_200_OK, response_model=PostCommentResponse)
 def post_comment(
