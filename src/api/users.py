@@ -42,7 +42,6 @@ def create_user(new_user: CreateUser):
 
     print(f"NEW USER: {new_user}")
     with db.engine.begin() as connection:
-
         #Inserts new user info into the username table
         result = connection.execute(
             sqlalchemy.text(
@@ -54,6 +53,7 @@ def create_user(new_user: CreateUser):
             ),
             {"username": new_user.username, "privacy": new_user.private},
         ).scalar_one()
+
 
     return UserCreateResponse(user_id=result)
 

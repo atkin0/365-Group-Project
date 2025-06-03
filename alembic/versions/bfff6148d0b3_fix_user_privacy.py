@@ -20,10 +20,9 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     """Upgrade schema."""
-    op.drop_column("users","private_account")
 
     #default to True to protect user settings
-    op.add_column("users",sa.Column("account_is_private", sa.Boolean(),nullable=False,server_default=sa.text("true")))
+    op.add_column("users",sa.Column("account_is_private", sa.Boolean(), server_default=sa.text("true")))
 
 
 def downgrade() -> None:
