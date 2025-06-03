@@ -175,6 +175,24 @@ with engine.begin() as conn:
                 }
             )
 
+        for _ in range(random.randint(0,2)):
+            user_id = random.randint(first_user_id, first_user_id + num_users - 1)
+            text = fake.text(10)
+
+            conn.execute(
+                sqlalchemy.text(
+                    """
+                    INSERT INTO comments (review_id, user_id, text) 
+                    VALUES (:review_id, :user_id, :text);
+                    """
+                ),
+                {
+                    "review_id": review_id,
+                    "user_id": user_id,
+                    "text": text,
+                }
+            )
+
 
 
 
