@@ -6,18 +6,19 @@ import numpy as np
 from random import Random
 
 
-def database_connection_url():
-    dotenv.load_dotenv()
-    DB_USER: str = os.environ.get("POSTGRES_USER")
-    DB_PASSWD = os.environ.get("POSTGRES_PASSWORD")
-    DB_SERVER: str = os.environ.get("POSTGRES_SERVER")
-    DB_PORT: str = os.environ.get("POSTGRES_PORT")
-    DB_NAME: str = os.environ.get("POSTGRES_DB")
-    return f"postgresql+psycopg://{DB_USER}:{DB_PASSWD}@{DB_SERVER}:{DB_PORT}/{DB_NAME}"
+# def database_connection_url():
+#     dotenv.load_dotenv()
+#     DB_USER: str = os.environ.get("POSTGRES_USER")
+#     DB_PASSWD = os.environ.get("POSTGRES_PASSWORD")
+#     DB_SERVER: str = os.environ.get("POSTGRES_SERVER")
+#     DB_PORT: str = os.environ.get("POSTGRES_PORT")
+#     DB_NAME: str = os.environ.get("POSTGRES_DB")
+#     return f"postgresql+psycopg://{DB_USER}:{DB_PASSWD}@{DB_SERVER}:{DB_PORT}/{DB_NAME}"
 
 
 # Create a new DB engine based on our connection string
-engine = sqlalchemy.create_engine(database_connection_url(), use_insertmanyvalues=True)
+
+engine = sqlalchemy.create_engine("postgresql+psycopg://myuser:mypassword@localhost:5433/mydatabase", use_insertmanyvalues=True)
 genres = ['FPS', 'Sandbox', 'Fighting', 'VR', 'Sports', 'Horror', 'Puzzle', 'RPG', 'Strategy',
               'Battle Royale', 'Adventure']
 
@@ -25,22 +26,15 @@ num_games = 500
 
 fake = Faker()
 random = Random()
-num_users = 20000
-num_friends = 20
-num_reviews = 400000
-num_optional_reviews = 2
+num_users = 4
+num_friends = 2
+num_reviews = 40
+num_optional_reviews = 1
 
 
 with engine.begin() as conn:
     conn.execute(sqlalchemy.text("""
-    TRUNCATE reviews;
-    TRUNCATE users;
-    TRUNCATE friends;
-    TRUNCATE games;
-    TRUNCATE genres;
-    TRUNCATE optional_reviews;
-    TRUNCATE history;
-    TRUNCATE comments;
+    TRUNCATE reviews, users, friends, games, genres, optional_reviews, history, comments;
     """))
 
     for genre in genres:
@@ -89,7 +83,7 @@ with engine.begin() as conn:
                     VALUES (:user_id, :game_id, :time_played)
                     ON CONFLICT (user_id, game_id) 
                     DO UPDATE SET
-                    time_played = time_played + :time_played;
+                    time_played = history.time_played + EXCLUDED.time_played;
                     """
                 ),
                 {"user_id": i, "game_id": game_id, "time_played": time_played}
@@ -97,13 +91,13 @@ with engine.begin() as conn:
 
     for i in range(1, num_users+1):
 
-        for i in range(num_friends):
+        for _ in range(num_friends):
             random_friend_id = random.randint(1, num_users)
             conn.execute(
                 sqlalchemy.text(
                     """
                     INSERT INTO friends (user_adding_id, user_added_id) 
-                    VALUES (:user_adding_id, user_added_id);
+                    VALUES (:user_adding_id, :user_added_id)
                     ON CONFLICT (user_adding_id, user_added_id)
                     DO NOTHING
                     """
@@ -124,7 +118,7 @@ with engine.begin() as conn:
             sqlalchemy.text(
                 """
                 INSERT INTO reviews (score, text, published, user_id, game_id) 
-                VALUES (:score, :text, :published, :user_id, :game_id);
+                VALUES (:score, :text, :published, :user_id, :game_id)
                 RETURNING id
                 """
             ),
@@ -139,7 +133,7 @@ with engine.begin() as conn:
 
         for i in range(num_optional_reviews):
             optional_rating = int(np.random.normal() * 10)
-            review_name = fake.text(1)
+            review_name = fake.word()
 
             conn.execute(
                 sqlalchemy.text(
