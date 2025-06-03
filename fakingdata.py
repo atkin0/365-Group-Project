@@ -42,9 +42,17 @@ with engine.begin() as conn:
         INSERT INTO genres (genre) VALUES (:genre);
         """), {"genre": genre})
 
+    first_genre_id = conn.execute(
+        sqlalchemy.text(
+            """
+            SELECT MIN(id) FROM genres
+            """
+        ),
+    ).scalar_one()
+
     for _ in range(num_games):
         game_name = fake.company()
-        game_genre = random.randint(1, 11)
+        game_genre = random.randint(first_genre_id, first_genre_id+10)
         conn.execute(
             sqlalchemy.text(
                 """
@@ -57,6 +65,14 @@ with engine.begin() as conn:
                  "game_genre": game_genre
              }
         )
+
+    first_game_id = conn.execute(
+        sqlalchemy.text(
+            """
+            SELECT MIN(id) FROM games 
+            """
+        ),
+    ).scalar_one()
 
     for _ in range(num_users):
         username = fake.name()
@@ -72,9 +88,17 @@ with engine.begin() as conn:
             }
         )
 
+    first_user_id = conn.execute(
+        sqlalchemy.text(
+            """
+            SELECT MIN(id) FROM users 
+            """
+        ),
+    ).scalar_one()
+
     for i in range(num_users):
-        for _ in range(random.randint(1, 20)):
-            game_id = random.randint(1, num_games)
+        for _ in range(random.randint(1, 5)):
+            game_id = random.randint(first_game_id, first_game_id+num_games-1)
             time_played = random.randint(1, 100)
             conn.execute(
                 sqlalchemy.text(
@@ -86,13 +110,15 @@ with engine.begin() as conn:
                     time_played = history.time_played + EXCLUDED.time_played;
                     """
                 ),
-                {"user_id": i, "game_id": game_id, "time_played": time_played}
+                {"user_id": i+first_user_id, "game_id": game_id, "time_played": time_played}
             )
 
-    for i in range(1, num_users+1):
-
+    for i in range(num_users):
         for _ in range(num_friends):
-            random_friend_id = random.randint(1, num_users)
+            random_friend_id = random.randint(first_user_id, first_user_id+num_users-1)
+            while random_friend_id == i+first_user_id:
+                random_friend_id = random.randint(first_user_id, first_user_id + num_users - 1)
+
             conn.execute(
                 sqlalchemy.text(
                     """
@@ -103,16 +129,16 @@ with engine.begin() as conn:
                     """
                 ),
                 {
-                    "user_adding_id": i,
+                    "user_adding_id": i+first_user_id,
                     "user_added_id": random_friend_id,
                 }
             )
 
     for _ in range(num_reviews):
-        user_id = random.randint(1, num_users)
-        score = int(np.random.normal() * 10)
+        user_id = random.randint(first_user_id, first_user_id+num_users-1)
+        score = random.randint(1,10)
         text = fake.text(10)
-        game_id = random.randint(1, num_games)
+        game_id = random.randint(first_game_id, first_game_id+num_games-1)
 
         review_id = conn.execute(
             sqlalchemy.text(
@@ -132,7 +158,7 @@ with engine.begin() as conn:
         ).scalar_one()
 
         for i in range(num_optional_reviews):
-            optional_rating = int(np.random.normal() * 10)
+            optional_rating = random.randint(1,10)
             review_name = fake.word()
 
             conn.execute(
