@@ -73,7 +73,7 @@ def add_friends(user_id: int, friend_id: int):
                 {"id": friend_id}).first():
             raise HTTPException(status_code=404, detail="Friend doesn't exist")
 
-        friends = connection.execute(
+        connection.execute(
             sqlalchemy.text(
                 """
                 INSERT INTO friends (user_adding_id, user_added_id)
