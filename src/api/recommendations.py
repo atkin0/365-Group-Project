@@ -164,7 +164,7 @@ def get_recommended_games(user_id, games_list: List[GameRanked]):
                 {
                     "game_id": game.game_id,
                 }
-            ).scalar_one()
+            ).scalar_one_or_none()
 
             friend_reviews = connection.execute(
                 sqlalchemy.text(
