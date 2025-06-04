@@ -109,7 +109,7 @@ def search_games(search: str = Query(..., description="Search term for finding g
 
 @router.get("/{game_id}", response_model=List[Review])
 def get_reviews_for_games(
-    search: str = Query("", description="Filter reviews by text content"),
+    search: str = Query("", description="Filter reviews by relations to game name"),
     limit: int = Query(10, description="Maximum number of reviews to return")
 ):
     start = time.time()
