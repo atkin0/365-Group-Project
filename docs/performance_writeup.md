@@ -41,6 +41,7 @@ Some are less than normal because if we added more faking data would take too lo
 ### What is our slowest endpoint and how did we improve it?
 slowest end point is get popular recommendations: 1400ish ms
 
+NOTE: There are other queries in this endpoint, but they are really direct select statements looking up the primary keys, so it wasn't included.
 
 ```
 SELECT games.genre_id AS genre_id
