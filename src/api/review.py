@@ -49,8 +49,19 @@ class Comment(BaseModel):
     text: str
 
 class CommentCreate(BaseModel):
+    review_id: int
     user_id: int
     comment: str = Field(..., max_length=500, description="Comment text limited to 500 characters")
+
+class ReviewPublishResponse(BaseModel):
+    review_id: int
+    published_at: datetime
+    status: str
+
+class ReviewUpdateResponse(BaseModel):
+    review_id: int
+    updated_at: datetime
+    changes_applied: bool
 
 @router.post("/", response_model=ReviewCreateResponse)
 def send_review(review: Reviews):
@@ -71,7 +82,7 @@ def send_review(review: Reviews):
     return ReviewCreateResponse(review_id=result)
 
 #review_id links the optional_review and required review
-@router.post("/{review_id}/optional", status_code=status.HTTP_204_NO_CONTENT)
+@router.post("/{review_id}/optional")
 def optional_review(review_id: int, optional: OptionalReviews):
     """
     Optional reviews for reviewing different aspects of a game. Each review can have multiple optional reviews extending.
@@ -98,7 +109,7 @@ def optional_review(review_id: int, optional: OptionalReviews):
     return ReviewCreateResponse(review_id=result)
 
 
-@router.patch("/{review_id}/publish", status_code=status.HTTP_204_NO_CONTENT)
+@router.patch("/{review_id}/publish")
 def post_review(review_id: int):
     start = time.time()
     with db.engine.begin() as connection:
@@ -106,7 +117,6 @@ def post_review(review_id: int):
                 sqlalchemy.text("SELECT 1 FROM reviews where id = :id"),
                 {"id": review_id}).first():
             raise HTTPException(status_code=404, detail="Review doesn't exist")
-
         connection.execute(
             sqlalchemy.text(
                 """
@@ -117,11 +127,18 @@ def post_review(review_id: int):
             ),
             {"review_id": review_id}
         )
+        current_time = connection.execute(
+            sqlalchemy.text("SELECT NOW() as timestamp")
+        ).scalar_one()
     end = time.time()
     print(end - start)
-    pass
+    return ReviewPublishResponse(
+        review_id=review_id,
+        published_at=current_time,
+        status="Review successfully published"
+    )
 
-@router.patch("/{review_id}/edit", status_code=status.HTTP_204_NO_CONTENT)
+@router.patch("/{review_id}/edit")
 def patch_review(review_id: int, review: Reviews):
     start = time.time()
     with db.engine.begin() as connection:
@@ -141,9 +158,17 @@ def patch_review(review_id: int, review: Reviews):
             ),
             {"review_id": review_id, "user_id": review.user_id, "score": review.score, "text": review.text, "game_id": review.game_id}
         )
+        current_time = connection.execute(
+            sqlalchemy.text("SELECT NOW() as timestamp")
+        ).scalar_one()
+        
     end = time.time()
     print(end - start)
-    pass
+    return ReviewUpdateResponse(
+        review_id=review_id,
+        updated_at=current_time,
+        changes_applied=True
+    )
 
 @router.get("/{review_id}/get", response_model=GetReview)
 def get_review_from_id(review_id: int):
@@ -200,15 +225,13 @@ def get_optional_review_from_id(review_id: int):
 
 @router.post("/{review_id}/comments", status_code=status.HTTP_200_OK, response_model=PostCommentResponse)
 def post_comment(
-    review_id: int, 
-    user_id: int, 
     comment: CommentCreate
 ):
     start = time.time()
     with db.engine.begin() as connection:
         if not connection.execute(
                 sqlalchemy.text("SELECT 1 FROM reviews where id = :id"),
-                {"id": review_id}).first():
+                {"id": comment.review_id}).first():
             raise HTTPException(status_code=404, detail="Review doesn't exist")
 
         result = connection.execute(
@@ -220,8 +243,8 @@ def post_comment(
                 """
             ),
             {
-                "review_id": review_id,
-                "user_id": user_id,
+                "review_id": comment.review_id,
+                "user_id": comment.user_id,
                 "text": comment.comment,
             }
         ).scalar_one()
